@@ -2,13 +2,21 @@
  * @Author: xinyan
  * @Date: 2023-06-15 15:11:57
  * @LastEditors: xinyan
- * @LastEditTime: 2023-06-16 15:22:05
+ * @LastEditTime: 2023-06-16 15:44:45
  * @Description: file content
 -->
 
 # TablePic
 ## Overview
 This package uses PIL (pillow) to generate a picture that contains a table. It has similar functionality to matplotlib's table, but includes more customization options.
+
+## Installation
+
+Use pip to install the package.
+
+```shell
+pip install tablepic
+```
 
 ## Instruction
 
