@@ -2,7 +2,7 @@
  * @Author: xinyan
  * @Date: 2023-06-15 15:11:57
  * @LastEditors: xinyan
- * @LastEditTime: 2023-06-16 15:44:45
+ * @LastEditTime: 2023-06-20 23:57:16
  * @Description: file content
 -->
 
@@ -17,6 +17,18 @@ Use pip to install the package.
 ```shell
 pip install tablepic
 ```
+
+## Release Note
+### v0.0.4
+In previous versions, the default width of all columns was the same and fixed. If the length of the contents in the table was too long, it would cause overlapping of the content, and the table could not adjust its width according to the contents. In v0.0.4, the recognition of the width and height of the table content was added, automatically setting the appropriate height for each column and row.
+
+Result of version v0.0.4:
+
+![adaptive_width_table](pic/adaptive_width_table.jpg)
+
+Result of version v0.0.3 and before:
+
+![fixed_width_table](pic/fixed_width_table.jpg)
 
 ## Instruction
 

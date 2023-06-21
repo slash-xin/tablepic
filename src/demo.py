@@ -2,7 +2,7 @@
 Author: xinyan
 Date: 2023-06-14 23:43:57
 LastEditors: xinyan
-LastEditTime: 2023-06-16 15:24:58
+LastEditTime: 2023-06-20 14:10:03
 Description: file content
 '''
 import tablepic as tp
@@ -18,7 +18,7 @@ title_list = [{'content': 'This is a title.'}]
 header_dict = {'content': [f'Header{i+1}' for i in range(8)]}
 data_dict = {'content':[[f'Data{i+j}' for j in range(8)] for i in range(9)]}
 
-tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict, data_dict=data_dict, img_path='./pic/basic_table1.jpg')
+# tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict, data_dict=data_dict, img_path='./pic/basic_table1.jpg')
 
 
 # Multiple title.
@@ -26,7 +26,7 @@ title_list = [{'content': 'This is a title.'}, {'content': 'This is a second tit
 header_dict = {'content': [f'Header{i+1}' for i in range(8)]}
 data_dict = {'content':[[f'Data{i+j}' for j in range(8)] for i in range(9)]}
 
-tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict, data_dict=data_dict, img_path='./pic/basic_table2.jpg')
+# tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict, data_dict=data_dict, img_path='./pic/basic_table2.jpg')
 
 
 # Add a footnote
@@ -34,7 +34,7 @@ title_list = [{'content': 'This is a title.'}, {'content': 'This is a second tit
 header_dict = {'content': [f'Header{i+1}' for i in range(8)]}
 data_dict = {'content':[[f'Data{i+j}' for j in range(8)] for i in range(9)]}
 footnote_list = [{'content': 'This is a footnote.'}]
-tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict, data_dict=data_dict, img_path='./pic/basic_table3.jpg', footnote_list=footnote_list)
+# tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict, data_dict=data_dict, img_path='./pic/basic_table3.jpg', footnote_list=footnote_list)
 
 
 # ---------------------------------
@@ -48,7 +48,7 @@ header_dict = {'content': ['MergedHead1', 'MergedHead2','MergedHead3'] + [f'Head
 data_dict = {'content':[[f'Data{i+j}' for j in range(8)] for i in range(8)]}
 # cell merged info
 cell_merge_dict = {'0-0':[0,1], '0-2':[0,3], '0-6':[0,1]}
-tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict, data_dict=data_dict, img_path='./pic/merged_table1.jpg', cell_merge_dict=cell_merge_dict)
+# tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict, data_dict=data_dict, img_path='./pic/merged_table1.jpg', cell_merge_dict=cell_merge_dict)
 
 
 title_list = [{'content': 'This is a cell merged table for row and column'}]
@@ -58,7 +58,7 @@ header_dict = {'content': ['Merge row and column', 'MergedHead2','row\nmerged'] 
 data_dict = {'content':[[f'Data{i+j}' for j in range(8)] for i in range(8)]}
 # cell merged info
 cell_merge_dict = {'0-0':[1,2], '0-3':[0,2], '0-6':[1,0]}
-tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict, data_dict=data_dict, img_path='./pic/merged_table2.jpg', cell_merge_dict=cell_merge_dict)
+# tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict, data_dict=data_dict, img_path='./pic/merged_table2.jpg', cell_merge_dict=cell_merge_dict)
 
 
 
@@ -75,10 +75,10 @@ header_dict = {'content': ['Merge row and column', 'MergedHead2','row\nmerged'] 
 data_dict = {'content':[[f'Data{i+j}' for j in range(8)] for i in range(8)]}
 # cell merged info
 cell_merge_dict = {'0-0':[1,2], '0-3':[0,2], '0-6':[1,0]}
-tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
-                      data_dict=data_dict, img_path='./pic/change_size_table1.jpg',
-                      cell_merge_dict=cell_merge_dict,
-                      cell_width=200, cell_height=80)
+# tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
+#                       data_dict=data_dict, img_path='./pic/change_size_table1.jpg',
+#                       cell_merge_dict=cell_merge_dict,
+#                       cell_width=200, cell_height=80)
 
 
 
@@ -94,10 +94,10 @@ header_dict = {'content': ['Merge row and column', 'MergedHead2','row merged'] +
 data_dict = {'content':[[f'Data{i+j}' for j in range(8)] for i in range(8)]}
 # cell merged info
 cell_merge_dict = {'0-0':[1,2], '0-3':[0,2], '0-6':[1,0]}
-tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
-                      data_dict=data_dict, img_path='./pic/change_size_table2.jpg',
-                      cell_merge_dict=cell_merge_dict,
-                      col_width_dict={6:300}, row_height_dict={5:80})
+# tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
+#                       data_dict=data_dict, img_path='./pic/change_size_table2.jpg',
+#                       cell_merge_dict=cell_merge_dict,
+#                       col_width_dict={6:300}, row_height_dict={5:80})
 
 
 # Modify the style of the title.
@@ -109,9 +109,9 @@ header_dict = {'content': ['MergedHead1', 'MergedHead2','MergedHead3'] + [f'Head
 data_dict = {'content':[[f'Data{i+j}' for j in range(8)] for i in range(8)]}
 # cell merged info
 cell_merge_dict = {'0-0':[0,1], '0-2':[0,3], '0-6':[0,1]}
-tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
-                      data_dict=data_dict, img_path='./pic/title_style_table.jpg',
-                      cell_merge_dict=cell_merge_dict)
+# tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
+#                       data_dict=data_dict, img_path='./pic/title_style_table.jpg',
+#                       cell_merge_dict=cell_merge_dict)
 
 
 
@@ -127,9 +127,9 @@ header_dict = {'content': ['MergedHead1', 'MergedHead2','MergedHead3'] + [f'Head
 data_dict = {'content':[[f'Data{i+j}' for j in range(8)] for i in range(8)]}
 # cell merged info
 cell_merge_dict = {'0-0':[0,1], '0-2':[0,3], '0-6':[0,1]}
-tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
-                      data_dict=data_dict, img_path='./pic/header_style_table.jpg',
-                      cell_merge_dict=cell_merge_dict)
+# tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
+#                       data_dict=data_dict, img_path='./pic/header_style_table.jpg',
+#                       cell_merge_dict=cell_merge_dict)
 
 
 
@@ -145,9 +145,9 @@ data_dict = {'content':[[f'Data{i+j}' for j in range(8)] for i in range(8)],
     }
 # cell merged info
 cell_merge_dict = {'0-0':[0,1], '0-2':[0,3], '0-6':[0,1]}
-tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
-                      data_dict=data_dict, img_path='./pic/data_style_table.jpg',
-                      cell_merge_dict=cell_merge_dict)
+# tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
+#                       data_dict=data_dict, img_path='./pic/data_style_table.jpg',
+#                       cell_merge_dict=cell_merge_dict)
 
 
 
@@ -166,10 +166,10 @@ data_dict = {'content':[[f'Data{i+j}' for j in range(8)] for i in range(8)],
     }
 # cell merged info
 cell_merge_dict = {'0-0':[0,1], '0-2':[0,3], '0-6':[0,1]}
-tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
-                      data_dict=data_dict, img_path='./pic/font_style_table.jpg',
-                      font_path=font_path,
-                      cell_merge_dict=cell_merge_dict)
+# tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
+#                       data_dict=data_dict, img_path='./pic/font_style_table.jpg',
+#                       font_path=font_path,
+#                       cell_merge_dict=cell_merge_dict)
 
 
 
@@ -185,9 +185,29 @@ data_dict = {'content':[[f'Data{i+j}' for j in range(8)] for i in range(8)],
     }
 # cell merged info
 cell_merge_dict = {'0-0':[0,1], '0-2':[0,3], '0-6':[0,1]}
-tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
-                      data_dict=data_dict, img_path='./pic/bk_style_table.jpg',
-                      font_path=font_path,
-                      cell_merge_dict=cell_merge_dict,
-                      pic_bk_color='#DFE4EA',
-                      table_line_color='#2F3542')
+# tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
+#                       data_dict=data_dict, img_path='./pic/bk_style_table.jpg',
+#                       font_path=font_path,
+#                       cell_merge_dict=cell_merge_dict,
+#                       pic_bk_color='#DFE4EA',
+#                       table_line_color='#2F3542')
+
+
+# fixed-width table
+title_list = [{'content': 'This is a fixed-width table'}]
+header_dict = {'content': [f'Header{i+1}' for i in range(4)]}
+# 8 * 4 data content
+data_dict = {'content':[[f'Data{i}-0', f'Data{i}-1 this is a long content.', f'Data{i}-2', f'Data{i}-3'] for i in range(9)]}
+# tp.generate_table_pic(10, 4, title_list=title_list, header_dict=header_dict,
+#                       data_dict=data_dict, img_path='./pic/fixed_width_table.jpg')
+
+
+# ------------------- version: v0.0.4 -------------------
+# adaptive-width table
+title_list = [{'content': 'This is a adaptive-width table'}]
+header_dict = {'content': [f'Header{i+1}' for i in range(4)]}
+# 8 * 4 data content
+data_dict = {'content':[[f'Data{i}-0', f'Data{i}-1 this is a long content.', f'Data{i}-2', f'Data{i}-3'] for i in range(9)]}
+tp.generate_table_pic(10, 4, title_list=title_list, header_dict=header_dict,
+                      data_dict=data_dict, img_path='./pic/adaptive_width_table.jpg')
+

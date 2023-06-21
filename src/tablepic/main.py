@@ -2,7 +2,7 @@
 Author: xinyan
 Date: 2023-06-13 17:12:25
 LastEditors: xinyan
-LastEditTime: 2023-06-16 15:20:39
+LastEditTime: 2023-06-20 12:54:03
 Description: file content
 '''
 
@@ -125,6 +125,22 @@ def get_data_info(data_dict:dict, key:str, i, j, v_default, v_type):
     return result
 
 
+def calculate_cell_width_height(data_dict:dict, font_path:str, cell_width:int, cell_height:int):
+    col_width_dict = {}
+    row_height_dict = {}
+    for i, data_line in enumerate(data_dict['content']):
+        for j, data_content in enumerate(data_line):
+            data_font = get_font(font_path, get_data_info(data_dict, 'font_size', i, j, 20, int))
+            c_w, c_h = 0, 0
+            for item in data_content.split('\n'):
+                w, h = data_font.getbbox(item)[2:]
+                c_w = max(c_w, w) + 20
+            c_h = h * len(data_content.split('\n'))
+            row_height_dict[i] = max(row_height_dict.get(i, cell_height), c_h)
+            col_width_dict[j] = max(col_width_dict.get(j, cell_width), c_w)
+    return col_width_dict, row_height_dict
+
+
 def generate_table_pic(row_num:int, col_num:int, title_list:list, header_dict:dict, data_dict:dict, img_path:str, footnote_list:list=[],
                        cell_width:int=150, cell_height:int=50,  col_width_dict:dict={}, row_height_dict:dict={}, cell_merge_dict:dict={},
                        table_margin:int=20, pic_bk_color='#FFFFFF', table_line_color='#E8EAED', font_path:str=None):
@@ -182,6 +198,10 @@ def generate_table_pic(row_num:int, col_num:int, title_list:list, header_dict:di
     :param table_line_color: str, optional parameter. Set the line color of the table, default value is '#E8EAED'.
     :param font_path: str, optional parameter. Given the font path to set a new font for the text (including title, header, data).
     """
+    # Calculate the width for each column and the height for each row
+    if len(row_height_dict) == 0 or len(col_width_dict) == 0:
+        col_width_dict, row_height_dict = calculate_cell_width_height(data_dict, font_path, cell_width, cell_height)
+
     color_white = '#FFFFFF'
     color_black = '#000000'
     color_default_header_bk = '#CCD6EB'
