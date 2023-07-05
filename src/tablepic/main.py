@@ -2,7 +2,7 @@
 Author: xinyan
 Date: 2023-06-13 17:12:25
 LastEditors: xinyan
-LastEditTime: 2023-06-20 12:54:03
+LastEditTime: 2023-07-05 11:35:06
 Description: file content
 '''
 
@@ -125,9 +125,10 @@ def get_data_info(data_dict:dict, key:str, i, j, v_default, v_type):
     return result
 
 
-def calculate_cell_width_height(data_dict:dict, font_path:str, cell_width:int, cell_height:int):
+def calculate_cell_width_height(row_num:int, data_dict:dict, font_path:str, cell_width:int, cell_height:int):
     col_width_dict = {}
     row_height_dict = {}
+    header_row = row_num - len(data_dict['content'])
     for i, data_line in enumerate(data_dict['content']):
         for j, data_content in enumerate(data_line):
             data_font = get_font(font_path, get_data_info(data_dict, 'font_size', i, j, 20, int))
@@ -135,8 +136,8 @@ def calculate_cell_width_height(data_dict:dict, font_path:str, cell_width:int, c
             for item in data_content.split('\n'):
                 w, h = data_font.getbbox(item)[2:]
                 c_w = max(c_w, w) + 20
-            c_h = h * len(data_content.split('\n'))
-            row_height_dict[i] = max(row_height_dict.get(i, cell_height), c_h)
+            c_h = h * len(data_content.split('\n')) + 20
+            row_height_dict[i + header_row] = max(row_height_dict.get(i + header_row, cell_height), c_h)
             col_width_dict[j] = max(col_width_dict.get(j, cell_width), c_w)
     return col_width_dict, row_height_dict
 
@@ -199,8 +200,9 @@ def generate_table_pic(row_num:int, col_num:int, title_list:list, header_dict:di
     :param font_path: str, optional parameter. Given the font path to set a new font for the text (including title, header, data).
     """
     # Calculate the width for each column and the height for each row
-    if len(row_height_dict) == 0 or len(col_width_dict) == 0:
-        col_width_dict, row_height_dict = calculate_cell_width_height(data_dict, font_path, cell_width, cell_height)
+    default_col_width_dict, default_row_height_dict = calculate_cell_width_height(row_num, data_dict, font_path, cell_width, cell_height)
+    col_width_dict.update(default_col_width_dict)
+    row_height_dict.update(default_row_height_dict)
 
     color_white = '#FFFFFF'
     color_black = '#000000'
