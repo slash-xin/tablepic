@@ -2,7 +2,7 @@
 Author: xinyan
 Date: 2023-06-13 17:12:25
 LastEditors: xinyan
-LastEditTime: 2023-11-21 12:19:12
+LastEditTime: 2023-11-24 09:09:09
 Description: file content
 '''
 
@@ -274,7 +274,7 @@ def generate_table_pic(row_num:int, col_num:int, title_list:list, header_dict:di
     for idx, footnote in enumerate(footnote_list):
         footnote_rec_coord = [0, tp_dict[idx-1], pic_width, footnote['height'] + tp_dict[idx-1]]
         tp_dict[idx] = footnote_rec_coord[3]
-        footnote_font = get_font(font_path, footnote.get['font_size'])
+        footnote_font = get_font(font_path, footnote['font_size'])
         footnote_coord = get_content_pos(footnote_rec_coord, footnote['content'], footnote_font, footnote['align'])
         draw.text(footnote_coord, footnote['content'], font=footnote_font, fill=footnote['color'])
 
