@@ -38,13 +38,13 @@ Usage example:
 import tablepic as tp
 
 pic_path_list = ['/tmp/pic1.png', '/tmp/pic2.png']
-combine_path = '/tmp/combine_pic.png'
+combine_path = '/tmp/combine_table.png'
 tp.combine_multiple_pic(combine_path, pic_path_list)
 ```
 
 The result is as follows:
 
-![combine_pic](pic/combine_pic.jpg)
+![combine_table](pic/combine_table.jpg)
 
 #### Generating images and then merging
 
@@ -71,7 +71,7 @@ tp.combine_multiple_pic(combine_path, img_list=[img1, img2])
 
 The result is as follows:
 
-![combine_pic](pic/combine_pic.jpg)
+![combine_table](pic/combine_table.jpg)
 
 ### v0.0.4
 In previous versions, the default width of all columns was the same and fixed. If the length of the contents in the table was too long, it would cause overlapping of the content, and the table could not adjust its width according to the contents. In v0.0.4, the recognition of the width and height of the table content was added, automatically setting the appropriate height for each column and row.

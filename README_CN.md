@@ -37,13 +37,13 @@ combine_multiple_pic
 import tablepic as tp
 
 pic_path_list = ['/tmp/pic1.png', '/tmp/pic2.png']
-combine_path = '/tmp/combine_pic.png'
+combine_path = '/tmp/combine_table.png'
 tp.combine_multiple_pic(combine_path, pic_path_list)
 ```
 
 生成结果如下：
 
-![combine_pic](pic/combine_pic.jpg)
+![combine_table](pic/combine_table.jpg)
 
 #### 生成图片在合并
 使用示例如下：
@@ -69,7 +69,7 @@ tp.combine_multiple_pic(combine_path, img_list=[img1, img2])
 
 生成结果如下：
 
-![combine_pic](pic/combine_pic.jpg)
+![combine_table](pic/combine_table.jpg)
 
 
 ### v0.0.4
