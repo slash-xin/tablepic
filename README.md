@@ -19,6 +19,60 @@ pip install tablepic
 ```
 
 ## Release Note
+### v0.0.8
+Some bug fixes were made between v0.0.4 and v0.0.7, with no significant functional changes.
+
+In v0.0.8, the function of merging images is added, which is used to merge multiple generated table images into one image. The function parameters are as follows:
+
+combine_multiple_pic
+
+combine_path: str, path of the merged image
+path_list: list[str], list of paths of images to be merged
+img_list: list[Image], list of image objects to be merged (PIL Image objects, can be generated and returned using the generate_table_pic() function or customized)
+pic_bk_color: background color of the generated image, default is white.
+
+#### Merging existing images
+Usage example:
+
+```python
+import tablepic as tp
+
+pic_path_list = ['/tmp/pic1.png', '/tmp/pic2.png']
+combine_path = '/tmp/combine_pic.png'
+tp.combine_multiple_pic(combine_path, pic_path_list)
+```
+
+The result is as follows:
+
+![combine_pic](pic/combine_pic.jpg)
+
+#### Generating images and then merging
+
+Usage example:
+
+```python
+import tablepic as tp
+
+# pic1
+title_list = [{'content': 'This is table 1'}]
+header_dict = {'content': [f'Header{i+1}' for i in range(8)]}
+data_dict = {'content':[[f'Data{i+j}' for j in range(8)] for i in range(9)]}
+img1 = tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict, data_dict=data_dict)
+
+# pic2
+title_list = [{'content': 'This is table 2'}]
+header_dict = {'content': [f'Header{i+1}' for i in range(5)]}
+data_dict = {'content':[[f'Data{i+j}' for j in range(5)] for i in range(9)]}
+img2 = tp.generate_table_pic(10, 5, title_list=title_list, header_dict=header_dict, data_dict=data_dict)
+
+combine_path = './pic/combine_table.jpg'
+tp.combine_multiple_pic(combine_path, img_list=[img1, img2])
+```
+
+The result is as follows:
+
+![combine_pic](pic/combine_pic.jpg)
+
 ### v0.0.4
 In previous versions, the default width of all columns was the same and fixed. If the length of the contents in the table was too long, it would cause overlapping of the content, and the table could not adjust its width according to the contents. In v0.0.4, the recognition of the width and height of the table content was added, automatically setting the appropriate height for each column and row.
 

@@ -2,7 +2,7 @@
 Author: xinyan
 Date: 2023-06-13 17:12:25
 LastEditors: xinyan
-LastEditTime: 2023-11-24 09:09:09
+LastEditTime: 2023-12-01 11:26:02
 Description: file content
 '''
 
@@ -142,7 +142,7 @@ def calculate_data_cell_width_height(row_num:int, data_dict:dict, font_path:str,
     return col_width_dict, row_height_dict
 
 
-def generate_table_pic(row_num:int, col_num:int, title_list:list, header_dict:dict, data_dict:dict, img_path:str, footnote_list:list=[],
+def generate_table_pic(row_num:int, col_num:int, title_list:list, header_dict:dict, data_dict:dict, img_path:str=None, footnote_list:list=[],
                        cell_width:int=150, cell_height:int=50,  col_width_dict:dict={}, row_height_dict:dict={}, cell_merge_dict:dict={},
                        table_margin:int=20, pic_bk_color='#FFFFFF', table_line_color='#E8EAED', font_path:str=None):
     """
@@ -181,7 +181,7 @@ def generate_table_pic(row_num:int, col_num:int, title_list:list, header_dict:di
         Example 3: {'content': ['A001', '123', '456'], ['A002', '234', '345']], 'bk_color': {'r0': '#FFFF00'}, 'fore_color': {'c1':'#00FF00'}, 'align': {'2-3':'left'}}
         It specify the first row's background color is yellow, the second column's text color is green, and the alignment of cell which in the third row and fourth column
         is left-aligned. 'r0' means 0-index row, 'c2' means 2-indexed column. '3-5' means the cell located in the fourth row and sixth column.
-    :param img_path: Set the path for saving the image.
+    :param img_path: Set the path for saving the image. If none then the image will not be saved.
     :param footnote_list: list, Optional parameter. Set the footnote information. The structure is the same as title_info. The default alignment
         is right-aligned, font size is 30, and height is 80 by default.
     :param cell_width: int, Optional parameter. Set the width of each cell. The default is 150.
@@ -219,7 +219,7 @@ def generate_table_pic(row_num:int, col_num:int, title_list:list, header_dict:di
 
     color_white = '#FFFFFF'
     color_black = '#000000'
-    
+
     title_list = process_title_footnote(title_list, __default_title_align, __default_title_font_size, __default_title_height, __default_title_color)
     footnote_list = process_title_footnote(footnote_list, __default_footnote_align, __default_footnote_font_size, __default_footnote_height, __default_footnote_color)
     total_title_height = sum([title['height'] for title in title_list])
@@ -277,12 +277,38 @@ def generate_table_pic(row_num:int, col_num:int, title_list:list, header_dict:di
         footnote_font = get_font(font_path, footnote['font_size'])
         footnote_coord = get_content_pos(footnote_rec_coord, footnote['content'], footnote_font, footnote['align'])
         draw.text(footnote_coord, footnote['content'], font=footnote_font, fill=footnote['color'])
+    if img_path:
+        image.save(img_path)
+    return image
 
-    image.save(img_path)
 
+def combine_multiple_pic(combine_path:str, path_list:list=None, img_list:list=None, pic_bk_color:str='#FFFFFF'):
+    """
+    Combine multiple pictures into one
+    :param pic_path_list: list, the list of picture's path
+    :param combine_pic_path: str, the path of combined picture
+    """
+    total_width = 0
+    total_height = 0
+    if path_list is None and img_list is None:
+        raise Exception('Please specify the path_list or img_list!')
+    elif path_list:
+        img_list = []
+        for path in path_list:
+            img = Image.open(path)
+            img_list.append(img)
+            total_width = max(total_width, img.width)
+            total_height += img.height
+    elif img_list:
+        total_width = max([img.width for img in img_list])
+        total_height = sum([img.height for img in img_list])
 
-
-
+    combine_img = Image.new('RGB', (total_width, total_height), pic_bk_color)
+    start_height = 0
+    for img in img_list:
+        combine_img.paste(img, ((total_width-img.width)//2, start_height))
+        start_height += img.height
+    combine_img.save(combine_path)
 
 
 

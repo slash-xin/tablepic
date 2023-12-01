@@ -2,7 +2,7 @@
 Author: xinyan
 Date: 2023-06-14 23:43:57
 LastEditors: xinyan
-LastEditTime: 2023-07-05 11:36:19
+LastEditTime: 2023-12-01 10:39:16
 Description: file content
 '''
 import tablepic as tp
@@ -211,3 +211,18 @@ data_dict = {'content':[[f'Data{i}-0', f'Data{i}-1 this is a long content.', f'D
 tp.generate_table_pic(10, 4, title_list=title_list, header_dict=header_dict,
                       data_dict=data_dict, img_path='./pic/adaptive_width_table.jpg')
 
+
+# ------------------- version: v0.0.8 -------------------
+# the title you want to put on the table
+title_list = [{'content': 'This is table 1'}]
+header_dict = {'content': [f'Header{i+1}' for i in range(8)]}
+data_dict = {'content':[[f'Data{i+j}' for j in range(8)] for i in range(9)]}
+img1 = tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict, data_dict=data_dict)
+
+title_list = [{'content': 'This is table 2'}]
+header_dict = {'content': [f'Header{i+1}' for i in range(5)]}
+data_dict = {'content':[[f'Data{i+j}' for j in range(5)] for i in range(9)]}
+img2 = tp.generate_table_pic(10, 5, title_list=title_list, header_dict=header_dict, data_dict=data_dict)
+
+combine_path = './pic/combine_table.jpg'
+tp.combine_multiple_pic(combine_path, img_list=[img1, img2])

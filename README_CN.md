@@ -19,6 +19,59 @@ pip install tablepic
 ```
 
 ## 版本说明
+### v0.0.8
+v0.0.4-v0.0.7之间进行了一些bug的修复，无太多功能性的修改。
+
+v0.0.8版新增加图片合并的功能，用于将生成的多个表格图片合并到一张图里面。函数参数如下：
+
+combine_multiple_pic
+- combine_path: str, 合并后图片的路径
+- path_list: list[str], 需要合并的图片的路径列表
+- img_list: list[Image]，需要合并的图片对象列表（PIL中的Image对象，可以使用函数 generate_table_pic() 生成返回，也可以自定义生成）
+- pic_bk_color: 生成图片的背景色，默认白色。
+
+#### 已有图片的合并
+使用示例如下：
+
+```python
+import tablepic as tp
+
+pic_path_list = ['/tmp/pic1.png', '/tmp/pic2.png']
+combine_path = '/tmp/combine_pic.png'
+tp.combine_multiple_pic(combine_path, pic_path_list)
+```
+
+生成结果如下：
+
+![combine_pic](pic/combine_pic.jpg)
+
+#### 生成图片在合并
+使用示例如下：
+
+```python
+import tablepic as tp
+
+# pic1
+title_list = [{'content': 'This is table 1'}]
+header_dict = {'content': [f'Header{i+1}' for i in range(8)]}
+data_dict = {'content':[[f'Data{i+j}' for j in range(8)] for i in range(9)]}
+img1 = tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict, data_dict=data_dict)
+
+# pic2
+title_list = [{'content': 'This is table 2'}]
+header_dict = {'content': [f'Header{i+1}' for i in range(5)]}
+data_dict = {'content':[[f'Data{i+j}' for j in range(5)] for i in range(9)]}
+img2 = tp.generate_table_pic(10, 5, title_list=title_list, header_dict=header_dict, data_dict=data_dict)
+
+combine_path = './pic/combine_table.jpg'
+tp.combine_multiple_pic(combine_path, img_list=[img1, img2])
+```
+
+生成结果如下：
+
+![combine_pic](pic/combine_pic.jpg)
+
+
 ### v0.0.4
 在之前的版本中，所有列的默认宽度相同且固定。如果表格中内容的长度过长，会导致内容重叠，并且表格无法根据内容调整宽度。在v0.0.4版本中，添加了对表格内容宽度和高度的识别，自动为每个列和行设置适当的高度。
 
