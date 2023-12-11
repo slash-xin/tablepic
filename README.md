@@ -19,6 +19,36 @@ pip install tablepic
 ```
 
 ## Release Note
+
+### v0.0.9
+In previous versions, if the title was wider than the table content, the title would be truncated.
+
+![](./pic/long_title_table1.jpg)
+
+
+This bug has been fixed in v0.0.9.
+
+![](./pic/long_title_table2.jpg)
+
+代码：
+```python
+# Before version v0.0.9
+title_list = [{'content': 'This is a long tile, which is longer than the table'}]
+header_dict = {'content': [f'Header{i+1}' for i in range(5)]}
+data_dict = {'content':[[f'Data{i+j}' for j in range(5)] for i in range(5)]}
+tp.generate_table_pic(6, 5, title_list=title_list, header_dict=header_dict,
+                      data_dict=data_dict, img_path='./pic/long_title_table1.jpg')
+
+
+# After version v0.0.9
+title_list = [{'content': 'This is a long tile, which is longer than the table'}]
+header_dict = {'content': [f'Header{i+1}' for i in range(5)]}
+data_dict = {'content':[[f'Data{i+j}' for j in range(5)] for i in range(5)]}
+tp.generate_table_pic(6, 5, title_list=title_list, header_dict=header_dict,
+                      data_dict=data_dict, img_path='./pic/long_title_table2.jpg')
+```
+
+
 ### v0.0.8
 Some bug fixes were made between v0.0.4 and v0.0.7, with no significant functional changes.
 

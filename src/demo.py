@@ -2,7 +2,7 @@
 Author: xinyan
 Date: 2023-06-14 23:43:57
 LastEditors: xinyan
-LastEditTime: 2023-12-01 10:39:16
+LastEditTime: 2023-12-11 12:50:20
 Description: file content
 '''
 import tablepic as tp
@@ -208,8 +208,8 @@ title_list = [{'content': 'This is a adaptive-width table'}]
 header_dict = {'content': [f'Header{i+1}' for i in range(4)]}
 # 8 * 4 data content
 data_dict = {'content':[[f'Data{i}-0', f'Data{i}-1 this is a long content.', f'Data{i}-2', f'Data{i}-3'] for i in range(9)]}
-tp.generate_table_pic(10, 4, title_list=title_list, header_dict=header_dict,
-                      data_dict=data_dict, img_path='./pic/adaptive_width_table.jpg')
+# tp.generate_table_pic(10, 4, title_list=title_list, header_dict=header_dict,
+#                       data_dict=data_dict, img_path='./pic/adaptive_width_table.jpg')
 
 
 # ------------------- version: v0.0.8 -------------------
@@ -217,12 +217,28 @@ tp.generate_table_pic(10, 4, title_list=title_list, header_dict=header_dict,
 title_list = [{'content': 'This is table 1'}]
 header_dict = {'content': [f'Header{i+1}' for i in range(8)]}
 data_dict = {'content':[[f'Data{i+j}' for j in range(8)] for i in range(9)]}
-img1 = tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict, data_dict=data_dict)
+# img1 = tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict, data_dict=data_dict)
 
 title_list = [{'content': 'This is table 2'}]
 header_dict = {'content': [f'Header{i+1}' for i in range(5)]}
 data_dict = {'content':[[f'Data{i+j}' for j in range(5)] for i in range(9)]}
-img2 = tp.generate_table_pic(10, 5, title_list=title_list, header_dict=header_dict, data_dict=data_dict)
+# img2 = tp.generate_table_pic(10, 5, title_list=title_list, header_dict=header_dict, data_dict=data_dict)
 
 combine_path = './pic/combine_table.jpg'
-tp.combine_multiple_pic(combine_path, img_list=[img1, img2])
+# tp.combine_multiple_pic(combine_path, img_list=[img1, img2])
+
+
+# ------------------- version: v0.0.9 -------------------
+# Before version v0.0.9
+title_list = [{'content': 'This is a long tile, which is longer than the table'}]
+header_dict = {'content': [f'Header{i+1}' for i in range(5)]}
+data_dict = {'content':[[f'Data{i+j}' for j in range(5)] for i in range(5)]}
+# tp.generate_table_pic(6, 5, title_list=title_list, header_dict=header_dict,
+                    #   data_dict=data_dict, img_path='./pic/long_title_table1.jpg')
+
+# After version v0.0.9
+title_list = [{'content': 'This is a long tile, which is longer than the table'}]
+header_dict = {'content': [f'Header{i+1}' for i in range(5)]}
+data_dict = {'content':[[f'Data{i+j}' for j in range(5)] for i in range(5)]}
+tp.generate_table_pic(6, 5, title_list=title_list, header_dict=header_dict,
+                      data_dict=data_dict, img_path='./pic/long_title_table2.jpg')

@@ -19,6 +19,35 @@ pip install tablepic
 ```
 
 ## 版本说明
+### v0.0.9
+在之前的版本中，如果标题比表格内容还宽，会出现标题被截断的情况：
+
+![](./pic/long_title_table1.jpg)
+
+
+在v0.0.9中修复此bug:
+
+![](./pic/long_title_table2.jpg)
+
+代码：
+```python
+# Before version v0.0.9
+title_list = [{'content': 'This is a long tile, which is longer than the table'}]
+header_dict = {'content': [f'Header{i+1}' for i in range(5)]}
+data_dict = {'content':[[f'Data{i+j}' for j in range(5)] for i in range(5)]}
+tp.generate_table_pic(6, 5, title_list=title_list, header_dict=header_dict,
+                      data_dict=data_dict, img_path='./pic/long_title_table1.jpg')
+
+
+# After version v0.0.9
+title_list = [{'content': 'This is a long tile, which is longer than the table'}]
+header_dict = {'content': [f'Header{i+1}' for i in range(5)]}
+data_dict = {'content':[[f'Data{i+j}' for j in range(5)] for i in range(5)]}
+tp.generate_table_pic(6, 5, title_list=title_list, header_dict=header_dict,
+                      data_dict=data_dict, img_path='./pic/long_title_table2.jpg')
+```
+
+
 ### v0.0.8
 v0.0.4-v0.0.7之间进行了一些bug的修复，无太多功能性的修改。
 

@@ -2,7 +2,7 @@
 Author: xinyan
 Date: 2023-06-13 17:12:25
 LastEditors: xinyan
-LastEditTime: 2023-12-01 11:26:02
+LastEditTime: 2023-12-11 13:17:40
 Description: file content
 '''
 
@@ -11,7 +11,7 @@ import sys
 from PIL import Image, ImageFont, ImageDraw
 
 
-def get_content_pos(rec_pos:list, content:str, font:ImageFont.FreeTypeFont, align:str='center'):
+def __get_content_pos(rec_pos:list, content:str, font:ImageFont.FreeTypeFont, align:str='center'):
     content_list = content.split('\n')
     c_w, c_h = 0, 0
     for item in content_list:
@@ -27,7 +27,7 @@ def get_content_pos(rec_pos:list, content:str, font:ImageFont.FreeTypeFont, alig
     elif align == 'left':
         return (int(rec_pos[0]+5), int(rec_pos[1]+rec_height/2-c_h/2))
 
-def get_font(font_path:str=None, font_size:int=20):
+def __get_font(font_path:str=None, font_size:int=20):
     """
     Returns a font object based on the given font path and font size.
     :param font_path: (str) The path to the font file. Default is None.
@@ -47,7 +47,7 @@ def get_font(font_path:str=None, font_size:int=20):
             return ImageFont.load_default()
 
 
-def generate_table_rec_coord(row_num:int, col_num:int, start_pos:list, margin:int=3, cell_width:int=150, cell_height:int=50,
+def __generate_table_rec_coord(row_num:int, col_num:int, start_pos:list, margin:int=3, cell_width:int=150, cell_height:int=50,
                            col_width_dict:dict={}, row_height_dict:dict={}, cell_merge_dict:dict={}):
     """
     Generate the coordinates of each cell of the table.
@@ -101,7 +101,7 @@ def generate_table_rec_coord(row_num:int, col_num:int, start_pos:list, margin:in
     table_pos = [start_pos[0]-margin, start_pos[1]-margin, max_x+margin, max_y+margin]
     return rec_pos_list, table_pos
 
-def process_title_footnote(title_or_footnote:list, default_align:str, default_font_size:int, default_height:int, default_color:str) -> list:
+def __process_title_footnote(title_or_footnote:list, default_align:str, default_font_size:int, default_height:int, default_color:str) -> list:
     result_list = []
     for idx, content_dict in enumerate(title_or_footnote):
         content_dict['font_size'] = content_dict.get('font_size', default_font_size) if idx == 0 else content_dict.get('font_size', default_font_size-10)
@@ -111,7 +111,17 @@ def process_title_footnote(title_or_footnote:list, default_align:str, default_fo
         result_list.append(content_dict)
     return result_list
 
-def get_data_info(data_dict:dict, key:str, i, j, v_default, v_type):
+def __get_max_width_title_footnote(title_list:list, footnote_list:list, font_path:str) -> int:
+    max_width = 0
+    for title in title_list:
+        title_font = __get_font(font_path, title['font_size'])
+        max_width = max(max_width, title_font.getbbox(title['content'])[2])
+    for footnote in footnote_list:
+        footnote_font = __get_font(font_path, footnote['font_size'])
+        max_width = max(max_width, footnote_font.getbbox(footnote['content'])[2])
+    return max_width
+
+def __get_data_info(data_dict:dict, key:str, i, j, v_default, v_type):
     if type(data_dict.get(key, v_default)) == v_type:
             result = data_dict.get(key, v_default)
     elif data_dict[key].get(f'{i}-{j}', None):
@@ -125,13 +135,13 @@ def get_data_info(data_dict:dict, key:str, i, j, v_default, v_type):
     return result
 
 
-def calculate_data_cell_width_height(row_num:int, data_dict:dict, font_path:str, cell_width:int, cell_height:int):
+def __calculate_data_cell_width_height(row_num:int, data_dict:dict, font_path:str, cell_width:int, cell_height:int):
     col_width_dict = {}
     row_height_dict = {}
     header_row = row_num - len(data_dict['content'])
     for i, data_line in enumerate(data_dict['content']):
         for j, data_content in enumerate(data_line):
-            data_font = get_font(font_path, get_data_info(data_dict, 'font_size', i, j, 20, int))
+            data_font = __get_font(font_path, __get_data_info(data_dict, 'font_size', i, j, 20, int))
             c_w, c_h = 0, 0
             for item in data_content.split('\n'):
                 w, h = data_font.getbbox(item)[2:]
@@ -213,20 +223,38 @@ def generate_table_pic(row_num:int, col_num:int, title_list:list, header_dict:di
     __default_footnote_align = 'right'
 
     # Calculate the width for each column and the height for each row
-    calc_col_width_dict, calc_row_height_dict = calculate_data_cell_width_height(row_num, data_dict, font_path, cell_width, cell_height)
+    calc_col_width_dict, calc_row_height_dict = __calculate_data_cell_width_height(row_num, data_dict, font_path, cell_width, cell_height)
     calc_col_width_dict.update(col_width_dict)
     calc_row_height_dict.update(row_height_dict)
 
     color_white = '#FFFFFF'
     color_black = '#000000'
 
-    title_list = process_title_footnote(title_list, __default_title_align, __default_title_font_size, __default_title_height, __default_title_color)
-    footnote_list = process_title_footnote(footnote_list, __default_footnote_align, __default_footnote_font_size, __default_footnote_height, __default_footnote_color)
+    title_list = __process_title_footnote(title_list, __default_title_align, __default_title_font_size, __default_title_height, __default_title_color)
+    footnote_list = __process_title_footnote(footnote_list, __default_footnote_align, __default_footnote_font_size, __default_footnote_height, __default_footnote_color)
     total_title_height = sum([title['height'] for title in title_list])
     total_footnote_height = sum([footnote['height'] for footnote in footnote_list])
-    cell_pos_list, table_pos = generate_table_rec_coord(row_num, col_num, start_pos=[table_margin, total_title_height], cell_width=cell_width, cell_height=cell_height,
-                                                     col_width_dict=calc_col_width_dict, row_height_dict=calc_row_height_dict, cell_merge_dict=cell_merge_dict)
-    pic_width = table_pos[2] + table_margin
+    max_title_footnote_width = __get_max_width_title_footnote(title_list, footnote_list, font_path)
+    cell_pos_list, table_pos = __generate_table_rec_coord(row_num, col_num, start_pos=[table_margin, total_title_height], cell_width=cell_width, cell_height=cell_height,
+                                                     col_width_dict=calc_col_width_dict, row_height_dict=calc_row_height_dict, cell_merge_dict=cell_merge_dict,)
+
+    # if the title is longer the table, need to adjust the table pos.
+    if table_pos[2] < max_title_footnote_width:
+        # print(table_pos, max_title_footnote_width)
+        diff = (max_title_footnote_width - table_pos[2]) // 2 + 5
+        # print(diff)
+        new_cell_pos_list = []
+        # update the cell rectangle coordinates(only for x axis).
+        for rec_pos in cell_pos_list:
+            new_cell_pos_list.append([x+diff if idx % 2 == 0 else x for idx, x in enumerate(rec_pos)])
+        # update the total table pos
+        new_table_pos = [x+diff if idx % 2 == 0 else x for idx, x in enumerate(table_pos)]
+        # print(new_table_pos)
+        cell_pos_list = new_cell_pos_list
+        table_pos = new_table_pos
+
+
+    pic_width = max(table_pos[2], max_title_footnote_width) + table_margin
     pic_height = table_pos[3] + table_margin + total_footnote_height
 
     image = Image.new('RGB', (pic_width, pic_height), pic_bk_color)
@@ -238,19 +266,19 @@ def generate_table_pic(row_num:int, col_num:int, title_list:list, header_dict:di
     for idx, title in enumerate(title_list):
         title_rec_coord = [0, tp_dict.get(idx-1, 0), pic_width, title['height'] + tp_dict.get(idx-1, 0)]
         tp_dict[idx] = title_rec_coord[3]
-        title_font = get_font(font_path, title['font_size'])
-        title_coord = get_content_pos(title_rec_coord, title['content'], title_font, title['align'])
+        title_font = __get_font(font_path, title['font_size'])
+        title_coord = __get_content_pos(title_rec_coord, title['content'], title_font, title['align'])
         draw.text(title_coord, title['content'], font=title_font, fill=title['color'])
 
     # Draw Header
     for idx, header_content in enumerate(header_dict['content']):
         header_rec_pos = cell_pos_list[idx]
-        header_font = get_font(font_path, header_dict.get('font_size', __default_header_font_size)) \
+        header_font = __get_font(font_path, header_dict.get('font_size', __default_header_font_size)) \
             if type(header_dict.get('font_size', __default_header_font_size)) == int \
-            else get_font(font_path, header_dict['font_size'].get(idx, __default_header_font_size))
-        header_coord = get_content_pos(header_rec_pos, header_content, header_font, header_dict.get('align', 'center')) \
+            else __get_font(font_path, header_dict['font_size'].get(idx, __default_header_font_size))
+        header_coord = __get_content_pos(header_rec_pos, header_content, header_font, header_dict.get('align', 'center')) \
             if type(header_dict.get('align', 'center')) == str \
-            else get_content_pos(header_rec_pos, header_content, header_font, header_dict['align'].get(idx, 'center'))
+            else __get_content_pos(header_rec_pos, header_content, header_font, header_dict['align'].get(idx, 'center'))
         draw.rectangle(header_rec_pos, fill=header_dict.get('bk_color', __default_header_bk_color)) \
             if type(header_dict.get('bk_color', __default_header_bk_color)) == str \
             else draw.rectangle(header_rec_pos, fill=header_dict['bk_color'].get(idx, __default_header_bk_color))
@@ -263,23 +291,24 @@ def generate_table_pic(row_num:int, col_num:int, title_list:list, header_dict:di
     for i, data_line in enumerate(data_dict['content']):
         for j, data_content in enumerate(data_line):
             data_rec_coord = cell_pos_list[idx + 1 + (i * col_num) + j]
-            data_rec_bk_color = get_data_info(data_dict, 'bk_color', i, j, color_white, str)
+            data_rec_bk_color = __get_data_info(data_dict, 'bk_color', i, j, color_white, str)
             draw.rectangle(data_rec_coord, fill=data_rec_bk_color)
-            data_font = get_font(font_path, get_data_info(data_dict, 'font_size', i, j, __default_data_font_size, int))
-            data_coord = get_content_pos(data_rec_coord, data_content, data_font, get_data_info(data_dict, 'align', i, j, 'center', str))
-            draw.text(data_coord, data_content, font=data_font, fill=get_data_info(data_dict, 'fore_color', i, j, color_black, str))
+            data_font = __get_font(font_path, __get_data_info(data_dict, 'font_size', i, j, __default_data_font_size, int))
+            data_coord = __get_content_pos(data_rec_coord, data_content, data_font, __get_data_info(data_dict, 'align', i, j, 'center', str))
+            draw.text(data_coord, data_content, font=data_font, fill=__get_data_info(data_dict, 'fore_color', i, j, color_black, str))
 
     # Draw footnote
     tp_dict = {-1: table_pos[3] + table_margin}
     for idx, footnote in enumerate(footnote_list):
         footnote_rec_coord = [0, tp_dict[idx-1], pic_width, footnote['height'] + tp_dict[idx-1]]
         tp_dict[idx] = footnote_rec_coord[3]
-        footnote_font = get_font(font_path, footnote['font_size'])
-        footnote_coord = get_content_pos(footnote_rec_coord, footnote['content'], footnote_font, footnote['align'])
+        footnote_font = __get_font(font_path, footnote['font_size'])
+        footnote_coord = __get_content_pos(footnote_rec_coord, footnote['content'], footnote_font, footnote['align'])
         draw.text(footnote_coord, footnote['content'], font=footnote_font, fill=footnote['color'])
     if img_path:
         image.save(img_path)
-    return image
+    else:
+        return image
 
 
 def combine_multiple_pic(combine_path:str, path_list:list=None, img_list:list=None, pic_bk_color:str='#FFFFFF'):
