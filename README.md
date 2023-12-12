@@ -20,6 +20,9 @@ pip install tablepic
 
 ## Release Note
 
+### v0.1.0
+bug fix.
+
 ### v0.0.9
 In previous versions, if the title was wider than the table content, the title would be truncated.
 
