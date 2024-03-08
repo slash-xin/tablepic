@@ -2,11 +2,39 @@
  * @Author: xinyan
  * @Date: 2023-11-02 19:07:09
  * @LastEditors: xinyan
- * @LastEditTime: 2024-03-08 21:32:26
+ * @LastEditTime: 2024-03-08 21:49:05
  * @Description: file content
 -->
 
 # TablePic
+
+- [TablePic](#tablepic)
+  - [1. 概述](#1-概述)
+  - [2. 安装](#2-安装)
+  - [3. 版本说明](#3-版本说明)
+    - [v0.2.0](#v020)
+    - [v0.1.0](#v010)
+    - [v0.0.9](#v009)
+    - [v0.0.8](#v008)
+      - [已有图片的合并](#已有图片的合并)
+      - [生成图片在合并](#生成图片在合并)
+    - [v0.0.4](#v004)
+  - [4. v0.2.0新版本使用说明](#4-v020新版本使用说明)
+    - [4.1.1. 标题部分结构及定义](#411-标题部分结构及定义)
+    - [4.1.2. 脚注部分结构及定义](#412-脚注部分结构及定义)
+    - [4.1.2. 表格部分结构及定义](#412-表格部分结构及定义)
+  - [5. v0.1.0版本前的使用说明](#5-v010版本前的使用说明)
+    - [基础表格](#基础表格)
+    - [合并表头单元格](#合并表头单元格)
+    - [修改宽度和高度](#修改宽度和高度)
+    - [修改标题样式](#修改标题样式)
+    - [修改表头样式](#修改表头样式)
+    - [修改数据内容样式](#修改数据内容样式)
+    - [修改字体](#修改字体)
+    - [修改背景颜色和表格线的颜色](#修改背景颜色和表格线的颜色)
+- [许可](#许可)
+
+
 ## 1. 概述
 这个包使用PIL（pillow）来生成包含表格的图片。它具有类似于matplotlib的table的功能，但包括更多的自定义选项。
 
@@ -91,7 +119,7 @@ tp.combine_multiple_pic(combine_path, pic_path_list)
 
 生成结果如下：
 
-![combine_table](pic/combine_table.jpg)
+![combine_table](./pic/combine_table.jpg)
 
 #### 生成图片在合并
 使用示例如下：
@@ -117,7 +145,7 @@ tp.combine_multiple_pic(combine_path, img_list=[img1, img2])
 
 生成结果如下：
 
-![combine_table](pic/combine_table.jpg)
+![combine_table](./pic/combine_table.jpg)
 
 
 ### v0.0.4
@@ -125,17 +153,17 @@ tp.combine_multiple_pic(combine_path, img_list=[img1, img2])
 
 v0.0.4版本的结果：
 
-![adaptive_width_table](pic/adaptive_width_table.jpg)
+![adaptive_width_table](./pic/adaptive_width_table.jpg)
 
 在v0.0.3版本及之前的结果：
 
-![fixed_width_table](pic/fixed_width_table.jpg)
+![fixed_width_table](./pic/fixed_width_table.jpg)
 
 ## 4. v0.2.0新版本使用说明
 
 重构后的新版本将图片的构成完全拆解为独立的三部分，可以自由组合这三部分内容。
 
-![表格结构](pic/表格构成说明.jpg)
+![表格结构](./pic/表格构成说明.jpg)
 
 程序会基于给定标题内容、表格内容、脚注内容计算三个大的矩形框大小，然后取三个矩形框最大的宽度作为最终图片的总宽度，累加三个矩形框的高度作为图片最终的高度。然后再基于图片最终的的宽度和高度，分别调整每部分的起始坐标，进而输出每部分的内容。
 
@@ -171,7 +199,7 @@ v0.0.4版本的结果：
 
 标题的布局构成如下所示：
 
-![标题结构](pic/标题构成说明.jpg)
+![标题结构](./pic/标题构成说明.jpg)
 
 > 注：考虑到标题下方可以是其他标题，或者表格，而这两者都有上方的间距，为了不留过多的空白，所以把标题下方的默认间距设置的比较小。
 
@@ -288,11 +316,11 @@ cell_dict = {
 
 表格行、列的索引，单元格的坐标索引方式见下图：
 
-![](pic/表格位置索引说明.jpg)
+![](./pic/表格位置索引说明.jpg)
 
 表格间距的说明：
 
-![](pic/表格间距说明.jpg)
+![](./pic/表格间距说明.jpg)
 
 ## 5. v0.1.0版本前的使用说明
 
@@ -313,7 +341,7 @@ tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
 
 生成的图片如下所示：
 
-![basic_table](pic/basic_table1.jpg)
+![basic_table](./pic/basic_table1.jpg)
 
 如你所见，可以通过参数 `title_list` 设置多级标题。示例如下：
 
@@ -328,7 +356,7 @@ tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
                       data_dict=data_dict, img_path='./pic/basic_table2.jpg')
 ```
 
-![basic_table2](pic/basic_table2.jpg)
+![basic_table2](./pic/basic_table2.jpg)
 
 还可以给图片添加脚注。如下所示：
 
@@ -346,7 +374,7 @@ tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
 
 生成的结果：
 
-![basic_table3](pic/basic_table3.jpg)
+![basic_table3](./pic/basic_table3.jpg)
 
 ### 合并表头单元格
 This package can also generate a table that has two rows for header or even more rows, and some some cells need to be merged. Let's see how to finish that.
@@ -382,7 +410,7 @@ tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
 
 以上代码生成的结果如下：
 
-![merged_table1](pic/merged_table1.jpg)
+![merged_table1](./pic/merged_table1.jpg)
 
 接下来我们尝试同时合并行和列。在下面的示例中，位于 `(0,0)` 坐标的单元格将向下合并一行，并向右合并两列。这意味着位于坐标 `(0,1), (0,2) (1,0), (1,1), (1,2)` 的5个单元格将不存在了。位于坐标 `(0,3)` 的单元格向右合并1列；位于坐标 `(0,6)` 的单元格向下合并一行；因此，总共会有8个表头内容。
 
@@ -404,7 +432,7 @@ tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
 
 参数 `header_dict` 中的 `content` 键的值的顺序非常重要。表头将从左到右输出到单元格中，并且会跳过已合并的单元格。
 
-![merged_table2](pic/merged_table2.jpg)
+![merged_table2](./pic/merged_table2.jpg)
 
 
 > 补充：数据单元格合并的方式与表头相同。
@@ -432,7 +460,7 @@ tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
 
 以上代码生成的结果如下：
 
-![change_size_table1](pic/change_size_table1.jpg)
+![change_size_table1](./pic/change_size_table1.jpg)
 
 
 如果你只想修改某一列的宽度和某一行的高度，可以通过参数 `col_width_dict, row_height_dict` 完成。来看如何实现：
@@ -456,7 +484,7 @@ tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
 
 以上代码中将第7列的宽度修改为300像素，其他列将会使用默认宽度150像素。第6行的高度修改为80像素，其他行使用默认的告诉50像素。当然，你可以通过 `cell_width, cell_height` 修改其他行和列的默认高度和宽度。
 
-![change_size_table2](pic/change_size_table2.jpg)
+![change_size_table2](./pic/change_size_table2.jpg)
 
 
 ### 修改标题样式
@@ -492,7 +520,7 @@ tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
 
 以上代码生成的结果如下：
 
-![change_size_table2](pic/title_style_table.jpg)
+![change_size_table2](./pic/title_style_table.jpg)
 
 ### 修改表头样式
 
@@ -528,7 +556,7 @@ tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
 
 以上代码生成的结果如下：
 
-![change_size_table2](pic/header_style_table.jpg)
+![change_size_table2](./pic/header_style_table.jpg)
 
 ### 修改数据内容样式
 
@@ -569,7 +597,7 @@ tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
                       cell_merge_dict=cell_merge_dict)
 ```
 
-![data_style_table](pic/data_style_table.jpg)
+![data_style_table](./pic/data_style_table.jpg)
 
 
 ### 修改字体
@@ -601,7 +629,7 @@ tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
 
 生成的结果如下：
 
-![font_style_table](/pic/font_style_table.jpg)
+![font_style_table](./pic/font_style_table.jpg)
 
 
 ### 修改背景颜色和表格线的颜色
@@ -633,11 +661,8 @@ tp.generate_table_pic(10, 8, title_list=title_list, header_dict=header_dict,
 ```
 
 
-![bk_style_table](pic/bk_style_table.jpg)
+![bk_style_table](./pic/bk_style_table.jpg)
 
-# 重点
-
-数据单元格不能合并，因为目前是直接传递一个二维数组，暂不考虑该情况。未来也许会考虑。
 
 # 许可
 
