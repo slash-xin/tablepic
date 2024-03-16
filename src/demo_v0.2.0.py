@@ -2,7 +2,7 @@
 Author: xinyan
 Date: 2024-03-08 21:20:04
 LastEditors: xinyan
-LastEditTime: 2024-03-08 21:22:00
+LastEditTime: 2024-03-16 14:35:41
 Description: file content
 '''
 import tablepic as tp
@@ -23,7 +23,7 @@ cell_dict = {
     'content': [f'Main Content{i}\nnew line' if i==12 else f'Main Content{i}' for i in range(20) ],
     'back_color': {'r0': '#AC3456'},
     'fore_color': {'r0': '#FFFFFF', 12: '#FF0000'},
-    'font_path': {'r4': font_bold_path, 12: font_bold_path},
+    'font_path': {'r4': font_bold_path, '3-2': font_bold_path},
     'font_size': {12: 30}
 }
 cell_merge_dict = {'0-0':[0,1], '1-1':[1,0], '3-2':[0,1]}

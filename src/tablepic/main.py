@@ -2,7 +2,7 @@
 Author: xinyan
 Date: 2023-06-13 17:12:25
 LastEditors: xinyan
-LastEditTime: 2024-03-08 18:14:09
+LastEditTime: 2024-03-16 14:17:41
 Description: Generate a picture which contans a table.
 History:
    2024.03.05: 新增主要函数 complex_table_pic 实现更加复杂的表格绘制，以及个性化控制。
@@ -606,7 +606,7 @@ def __process_table_attribute(font_path:str, row_num:int, col_num:int, cell_dict
         'padding_v': cell_dict.get('padding_v', default_config['cell_padding_v']),
     }
     # 以下获取可以单独设置的属性
-    lam_dict_attribute = lambda x, i: x.get(i) if isinstance(x, dict) else None
+    lam_dict_attribute = lambda x, i, j: x.get(i) or x.get(j) if isinstance(x, dict) else None
     lam_final_attribute = lambda cell, col, row, table, obj_type, default: cell or col or row or (table if isinstance(table, obj_type) else default)
     __cell_idx = 0
     __skip_coord_list = []
@@ -621,16 +621,16 @@ def __process_table_attribute(font_path:str, row_num:int, col_num:int, cell_dict
     ]
     for i in range(row_num):
         # 从参数值按行获取属性
-        __row_attribute_list = [lam_dict_attribute(attribute[3], f'r{i}') for attribute in __attribute_list]
+        __row_attribute_list = [lam_dict_attribute(attribute[3], f'r{i}', '__NONE__') for attribute in __attribute_list]
         for j in range(col_num):
             __curr_coord = f'{i}-{j}'
             # 如果当前单元格是被合并的，则跳过
             if __curr_coord in __skip_coord_list:
                 continue
             # 从参数值按列获取属性
-            __col_attribute_list = [lam_dict_attribute(attribute[3], f'c{j}') for attribute in __attribute_list]
-            # 从参数值按索引顺序获取字体属性
-            __cell_attribute_list = [lam_dict_attribute(attribute[3], __cell_idx) for attribute in __attribute_list]
+            __col_attribute_list = [lam_dict_attribute(attribute[3], f'c{j}', '__NONE__') for attribute in __attribute_list]
+            # 从参数值按索引顺序获取字体属性(可以按照content的顺序索引，也可以按照单元格的坐标索引)
+            __cell_attribute_list = [lam_dict_attribute(attribute[3], __cell_idx, __curr_coord) for attribute in __attribute_list]
             # 计算单元格最终的属性，按照：单元格、列、行、表格、默认的顺序依次获取
             table_attribute_dict[__curr_coord] = dict([[__attr_name, lam_final_attribute(__cell_v, __col_v, __row_v, __attr_obj, __attr_type, __attr_default)]
                 for (__attr_name, __attr_type, __attr_default, __attr_obj), __cell_v, __col_v, __row_v in zip(__attribute_list, __cell_attribute_list, __col_attribute_list, __row_attribute_list)

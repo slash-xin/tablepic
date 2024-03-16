@@ -2,7 +2,7 @@
  * @Author: xinyan
  * @Date: 2023-11-02 19:07:09
  * @LastEditors: xinyan
- * @LastEditTime: 2024-03-08 21:49:05
+ * @LastEditTime: 2024-03-16 14:38:08
  * @Description: file content
 -->
 
@@ -12,6 +12,7 @@
   - [1. 概述](#1-概述)
   - [2. 安装](#2-安装)
   - [3. 版本说明](#3-版本说明)
+    - [v0.2.1](#v021)
     - [v0.2.0](#v020)
     - [v0.1.0](#v010)
     - [v0.0.9](#v009)
@@ -47,6 +48,50 @@ pip install tablepic
 ```
 
 ## 3. 版本说明
+
+### v0.2.1
+- 更新日期：2024.03.17
+- 更新内容：在函数 `complex_table_pic` 的参数 `cell_dict` 中针对单元格内容的属性设置上增加一种索引方式。
+
+在 v0.2.0 版本中，在给 `cell_dict` 赋值时若要给指定的某个单元格进行个性化属性设置时，需根据单元格的顺序索引进行指定。
+在以下代码中若要针对单元格内容“Content2”进行单元格背景颜色，以及字体的单独设置，则是通过该值在 `cell_dict['content']` 列表中的索引，即 `4` 来指定。如下所示：
+
+```python
+import tablepic as tp
+
+font_path = '/Users/xinyan/Library/Fonts/sarasa-mono-sc-regular.ttf'
+font_bold_path = '/Users/xinyan/Library/Fonts/UbuntuMono-BI.ttf'
+title_list = [
+    {'content': 'This is a main title', 'padding_b': 0, 'font_path': font_bold_path}
+]
+
+cell_dict = {
+    'content': ['Header1', 'Header2', 'Header3',
+        'Content1', 'Content2', 'Content3',
+        'Content4', 'Content5', 'Content6',
+    ],
+    'back_color': {4: '#FF0000'},
+    'font_path': {4: font_bold_path},
+}
+img_path = './pic/demo_table.jpg'
+tp.complex_table_pic(5, 4, title_list, cell_dict, font_path, img_path, footnote_list)
+```
+
+在一些情况下，通过单元格在表格的坐标索引指定属性会更加方便。例如，“Content2”是表格中的第二行第二列，坐标索引是 `1-1`。在 v0.2.1 版本中增加此种方式的索引指定。也可以通过如下代码实现相同的效果：
+
+```python
+
+cell_dict = {
+    'content': ['Header1', 'Header2', 'Header3',
+        'Content1', 'Content2', 'Content3',
+        'Content4', 'Content5', 'Content6',
+    ],
+    'back_color': {'1-1': '#FF0000'},
+    'font_path': {'1-1': font_bold_path},
+}
+
+```
+
 
 ### v0.2.0
 大版本更新：重新设计生成表格图片的逻辑，对核心代码进行重写。为了不影响已有函数的功能受影响，此次更新新增一个函数 `complex_table_pic` 来实现更加复杂的表格。相比之前的 `generate_table_pic` 函数，主要有以下几个方面的优化：
