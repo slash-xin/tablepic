@@ -2,7 +2,7 @@
  * @Author: xinyan
  * @Date: 2023-11-02 19:07:09
  * @LastEditors: xinyan
- * @LastEditTime: 2024-03-16 14:38:08
+ * @LastEditTime: 2024-03-24 19:45:54
  * @Description: file content
 -->
 
@@ -12,6 +12,12 @@
   - [1. 概述](#1-概述)
   - [2. 安装](#2-安装)
   - [3. 版本说明](#3-版本说明)
+    - [v0.2.2](#v022)
+      - [更新概览](#更新概览)
+      - [索引支持详述](#索引支持详述)
+      - [表格内容支持二维列表](#表格内容支持二维列表)
+      - [图标支持](#图标支持)
+      - [完成示例代码](#完成示例代码)
     - [v0.2.1](#v021)
     - [v0.2.0](#v020)
     - [v0.1.0](#v010)
@@ -48,6 +54,236 @@ pip install tablepic
 ```
 
 ## 3. 版本说明
+
+### v0.2.2
+
+#### 更新概览
+- 更新日期：2024.03.22
+- 更新内容：针对函数 `complex_table_pic` 进行了功能优化，以及数据图表的支持。具体包括：
+  - 1、参数 `cell_dict` 在指定行、列、单元格时支持逆向索引；单元格的索引还支持行列坐标索引。
+  - 2、参数 `cell_dict` 的key `content` 的值支持二维列表输入；要求每行的列数是相同的。
+  - 3、支持对单元格添加指示性的图标：箭头、表情、百分比。
+
+#### 索引支持详述
+针对一个5x5，且没有单元格合并的表格，除了用 `r0` 表示第一行外，还可以用 `r-5`表示相同的行；可以用 `c2` 和 `c-3` 表示相同的列。
+
+在此版本之前，单元格的索引与 `content` 参数内容的索引同步。若要对第二行第一列的单元格设置属性，则必须通过索引`5` 表示。在此版本后，还可以通过 `1-0`、`1,0`、`1,-5` 、`-4,0`、`-4,-5` 表示。
+
+> 注：在一开始设计此包时，单元格索引使用 `[行坐标]-[纵坐标]` 的方式，“-”作为分隔符使用。但是此次增加逆向索引的功能时发现，逆向索引的负号会和分隔符混在一起。所以，此次增加了“,”作为分隔符的支持。若要使用逆向索引，必须使用逗号分隔符。
+
+代码示例：
+
+```python
+bold_font_path = '/xxx/xxx.ttf
+
+cell_dict = {
+    'content': [
+        'xxx','xxx','xxx','xxx',
+        'xxx','xxx','xxx','xxx',
+        'xxx','xxx','xxx','xxx'
+    ],
+    'font_path': {'r0': bold_font_path, 'r-1': bold_font_path}
+    'back_color': {'r3': '#FF0000', 'c-1': '00FF00'}
+    'font_size': {4: 20, '1-0': 25, '2,2': 30, '-1,-1': 40}
+}
+```
+
+#### 表格内容支持二维列表
+
+为了更加方便使用，增加二维列表的赋值方式。但需要注意
+- 如果是一维列表赋值，被合并的单元格内容是不需要指定的。
+- 如果是二维列表赋值，被合并的单元格的内容也需要指定（虽然不使用），也就意味着1维列表的大小必须相同。
+
+代码示例：
+
+```python
+
+# 假设3*4的表格，有第三行的前个单元格被合并
+merge_dict = {'2,0':[0,1]}
+# 一维列表赋值
+cell_dict = {
+    'content': [
+        'xxx','xxx','xxx','xxx',
+        'xxx','xxx','xxx','xxx',
+        'xxx','xxx','xxx'
+    ],
+}
+
+# 二维列表赋值
+cell_dict = {
+    'content': [
+        ['xxx','xxx','xxx','xxx'],
+        ['xxx','xxx','xxx','xxx'],
+        ['xxx','占位没用','xxx','xxx']
+    ],
+}
+```
+#### 图标支持
+
+此版本增加了单元格指示性图标的支持，目前可使用的图标类型包括以下几种：
+
+![IconCollect](./pic/IconDesc.png)
+
+图标的设定只支持单元格，也就是说需要为想要设定图标的单元格都分别指定。通过 `cell_dict` 参数中的 `icon_config` key来为每个单元格设定图标属性。目前可以指定：
+- 图标的类型
+- 图标的颜色
+
+图标的类型即为上图中每个图标下方的名字，颜色通过十六进制颜色代码指定，两部分信息通过“@”进行分割。其中百分比图标可以指定具体的百分比数。
+
+示例代码：
+
+```python
+cell_dict = {
+    'content': [
+        ['ID', '指标1', '指标2', '指标3'],
+        ['A001', '10', '-20', '36.76%'],
+        ['A002', '-5', '40', '85.33%'],
+    ],
+    'icon_config': {
+        '1,1': 'triangle_up@#FF0000', '1,2': 'square_down@#00FF00', '1,3': 'percent_36@#FF0000',
+        '2,1': 'triangle_down@#00FF00', '2,2': 'square_up@#FF0000', '2,3': 'percent_85@#00FF00',
+    }
+}
+```
+
+以上设置将会得到下面的结果：
+
+![icon_demo](./pic/icon_demo.png)
+
+
+#### 完成示例代码
+
+以下是一段完整的代码，生成的结果如下所示：
+
+![demo_complex_table_with_icon](./pic/demo_complex_table_with_icon.png)
+
+```python
+
+import pandas as pd
+import tablepic as tp
+
+data_list = [
+    ['华北', '北京', 800, 1200, 950, 1400],
+    ['华北', '天津', 950, 1210, 860, 1410],
+    ['东北', '辽宁', 1100, 1220, 1370, 1420],
+    ['东北', '吉林', 1120, 1230, 1380, 1430],
+    ['华东', '上海', 1200, 1240, 1090, 1440],
+    ['华东', '江苏', 1210, 1250, 950, 1450],
+    ['华中', '湖北', 1220, 1260, 560, 1460],
+    ['华中', '湖南', 1230, 1270, 1270, 1470],
+    ['华南', '广东', 1240, 1280, 1370, 1480],
+    ['华南', '广西', 1250, 1290, 1480, 1490],
+]
+
+df = pd.DataFrame(data_list, columns=['区域', '省份', '指标1', '指标2', '指标3', '指标4'])
+df_sum = df.groupby('区域').sum(numeric_only=True).reset_index()
+df_sum['区域'] = df_sum['区域'].apply(lambda x: x+'合计')
+df_sum['省份'] = ''
+
+df_final = pd.concat([df, df_sum], axis=0).sort_values(by='区域').reset_index(drop=True)
+df_final['指标5'] = df_final['指标1'] / df_final['指标2']
+df_final['指标6'] = df_final['指标3'] / df_final['指标4']
+
+# 类型处理
+for col in ['指标1', '指标2', '指标3', '指标4']:
+    df_final[col] = df_final[col].apply(lambda x: f'{x:,}')
+for col in ['指标5', '指标6']:
+    df_final[col] = df_final[col].apply(lambda x: f'{x:.2%}')
+
+
+
+font_path = '/Users/xinyan/Library/Fonts/sarasa-mono-sc-regular.ttf'
+font_bold_path = '/Users/xinyan/Library/Fonts/sarasa-mono-sc-bold.ttf'
+title_list = [
+    {'content': 'XXX区域数据统计', 'padding_b': 0, 'font_path': font_bold_path},
+    {'content': '统计日期：2024.03.18', 'font_size': 20, 'align': 'right', 'padding_t':10, 'padding_b':0, 'x_offset': -30},
+]
+
+footnote_list = [
+    {'content': '注：以上数据与实际图标只为演示，无实际意义！', 'padding_t': 0},
+]
+
+# 单元格内容
+content_list = [df_final.columns.tolist()] + df_final.values.tolist()
+# 合并单元格计算：合计行的【区域】字段合并
+merge_dict = {}
+row_font_path = {}
+for idx, val in enumerate(df_final['区域']):
+    if val.endswith('合计'):
+        merge_dict[f'{idx+1}-0'] = [0, 1]
+        row_font_path[f'r{idx+1}'] = font_bold_path
+# 颜色定义
+clr_good = '#2a6e3f'
+clr_warn = '#f39c12'
+clr_bad = '#c12c1f'
+# 图标配置
+icon_config = {}
+for r_idx, row in df_final.iterrows():
+    c_idx = 0
+    for col, val in row.items():
+        # 指标1：箭头
+        if col == '指标1':
+            if float(val.replace(',', '')) > 1200:
+                icon_config[f'{r_idx+1}-{c_idx}'] = f'arrow_up@{clr_good}'
+            elif float(val.replace(',', '')) > 1100:
+                icon_config[f'{r_idx+1}-{c_idx}'] = f'neutral@{clr_warn}'
+            else:
+                icon_config[f'{r_idx+1}-{c_idx}'] = f'arrow_down@{clr_bad}'
+        # 指标2：圆圈箭头
+        elif col == '指标2':
+            if float(val.replace(',', '')) > 1280:
+                icon_config[f'{r_idx+1}-{c_idx}'] = f'circle_up@{clr_good}'
+            elif float(val.replace(',', '')) > 1250:
+                icon_config[f'{r_idx+1}-{c_idx}'] = f'neutral@{clr_warn}'
+            else:
+                icon_config[f'{r_idx+1}-{c_idx}'] = f'circle_down@{clr_bad}'
+        # 指标3：方块箭头
+        elif col == '指标3':
+            if float(val.replace(',', '')) > 1400:
+                icon_config[f'{r_idx+1}-{c_idx}'] = f'square_up@{clr_good}'
+            elif float(val.replace(',', '')) > 1380:
+                icon_config[f'{r_idx+1}-{c_idx}'] = f'neutral@{clr_warn}'
+            else:
+                icon_config[f'{r_idx+1}-{c_idx}'] = f'square_down@{clr_bad}'
+        # 指标4：三角箭头
+        elif col == '指标4':
+            if float(val.replace(',', '')) > 1450:
+                icon_config[f'{r_idx+1}-{c_idx}'] = f'triangle_up@{clr_good}'
+            elif float(val.replace(',', '')) > 1430:
+                icon_config[f'{r_idx+1}-{c_idx}'] = f'neutral@{clr_warn}'
+            else:
+                icon_config[f'{r_idx+1}-{c_idx}'] = f'triangle_down@{clr_bad}'
+        # 指标5：表情
+        elif col == '指标5':
+            if float(val.replace('%', '')) > 90:
+                icon_config[f'{r_idx+1}-{c_idx}'] = f'happy_face@{clr_good}'
+            elif float(val.replace('%', '')) > 70:
+                icon_config[f'{r_idx+1}-{c_idx}'] = f'neutral_face@{clr_warn}'
+            else:
+                icon_config[f'{r_idx+1}-{c_idx}'] = f'sad_face@{clr_bad}'
+        # 指标6：百分比
+        elif col == '指标6':
+            if float(val.replace('%', '')) > 90:
+                icon_config[f'{r_idx+1}-{c_idx}'] = f"percent_{float(val.replace('%', ''))}@{clr_good}"
+            elif float(val.replace('%', '')) > 70:
+                icon_config[f'{r_idx+1}-{c_idx}'] = f"percent_{float(val.replace('%', ''))}@{clr_warn}"
+            else:
+                icon_config[f'{r_idx+1}-{c_idx}'] = f"percent_{float(val.replace('%', ''))}@{clr_bad}"
+        c_idx += 1
+
+cell_dict = {
+    'content': content_list,
+    'back_color': {'r0': '#2e59a7'},
+    'fore_color': {'r0': '#FFFFFF'},
+    'font_path': row_font_path,
+    'icon_config': icon_config,
+}
+img_path = './pic/demo_complex_table_with_icon.png'
+tp.complex_table_pic(df_final.shape[0]+1, df_final.shape[1], title_list, cell_dict, font_path, img_path,
+    footnote_list=footnote_list, cell_merge_dict=merge_dict)
+
+```
+
 
 ### v0.2.1
 - 更新日期：2024.03.17

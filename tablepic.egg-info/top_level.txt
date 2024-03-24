@@ -1,0 +1,4 @@
+dist
+pic
+src
+test_floder

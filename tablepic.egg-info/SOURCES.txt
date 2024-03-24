@@ -1,0 +1,15 @@
+LICENSE
+README.md
+pyproject.toml
+readme_pypi.md
+./src/demo.py
+./src/demo_v0.2.0.py
+./src/tablepic/__init__.py
+./src/tablepic/main.py
+./test_floder/test2.py
+./test_floder/test_function.py
+./test_floder/test_svg_img.py
+tablepic.egg-info/PKG-INFO
+tablepic.egg-info/SOURCES.txt
+tablepic.egg-info/dependency_links.txt
+tablepic.egg-info/top_level.txt

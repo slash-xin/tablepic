@@ -1,0 +1,32 @@
+Metadata-Version: 2.1
+Name: tablepic
+Version: 0.2.2
+Summary: A package can generate a picture which contains a table.
+Author-email: Xin Yan <slash.xin@gmail.com>
+Project-URL: Homepage, https://github.com/slash-xin/tablepic
+Project-URL: Bug Tracker, https://github.com/slash-xin/tablepic/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.5
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+<!--
+ * @Author: xinyan
+ * @Date: 2023-06-16 15:32:25
+ * @LastEditors: xinyan
+ * @LastEditTime: 2023-06-16 15:33:40
+ * @Description: file content
+-->
+# TablePic
+## Overview
+This package uses PIL (pillow) to generate a picture that contains a table. It has similar functionality to matplotlib's table, but includes more customization options.
+
+## Instruction
+
+The instruction of the package, see: [tablepic](https://github.com/slash-xin/tablepic)
+
+# LICENSE
+
+Please refer to [LICENSE](LICENSE) file.

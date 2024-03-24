@@ -2,14 +2,15 @@
 Author: xinyan
 Date: 2023-06-13 17:12:25
 LastEditors: xinyan
-LastEditTime: 2024-03-16 14:17:41
+LastEditTime: 2024-03-20 11:38:53
 Description: Generate a picture which contans a table.
 History:
    2024.03.05: 新增主要函数 complex_table_pic 实现更加复杂的表格绘制，以及个性化控制。
 '''
-
+import os
 import math
 import sys
+import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 
 
@@ -346,6 +347,51 @@ def combine_multiple_pic(combine_path:str, path_list:list=None, img_list:list=No
 # 暂时不对之前的代码逻辑做进一步的修改即优化。
 # ---------------------------------------------------------------------------------------------------------
 
+def __convert_hex_to_rgba(hex_color:str) -> tuple:
+    """
+   将十六进制的颜色转换为RGBA格式
+    """
+    hex_color = hex_color.lstrip('#')
+    return tuple(int(hex_color[i:i + 2], 16) for i in (0, 2, 4)) + (255,)  # Add alpha channel
+
+def __replace_png_color_resize(png_path:str, replace_color:str, new_size:tuple, target_color:str='#000000') -> Image:
+    """
+    将PNG文件中的目标颜色替换为替换颜色。
+    """
+    image = np.array(Image.open(png_path))
+    target_color = __convert_hex_to_rgba(target_color)
+    replace_color = __convert_hex_to_rgba(replace_color)
+    target_pixels = np.all(image == target_color, axis=-1)
+    image[target_pixels] = replace_color
+    return Image.fromarray(image).resize(new_size)
+
+def __generate_percent_icon(percent:float, color:str, size:tuple=(40, 40)) -> Image:
+    """
+    创建一个表示百分比值的图标。
+    :param percent: 百分比值
+    :param color: 颜色
+    :param size: 图标的尺寸
+    """
+    __inser_size = 150
+    image = Image.new("RGBA", (__inser_size, __inser_size), (255, 255, 255, 255))
+    draw = ImageDraw.Draw(image)
+    draw.ellipse([0, 0, __inser_size, __inser_size], fill='#FFFFFF', outline='#000000', width=3)
+    draw.pieslice([0, 0, __inser_size, __inser_size], 0-90, 360 * percent-90, fill=color)
+    return image.resize(size)
+
+
+def __get_icon_image(icon_config:str, icon_size:int=40):
+    """
+    根据图标属性获取图标的Image对象
+    """
+    root_path = os.path.join(os.path.dirname(__file__), 'assets')
+    name, color = icon_config.split('@')
+    if name.lower()[:7] == 'percent':
+        return __generate_percent_icon(float(name.split('_')[1])/100, color, (icon_size, icon_size))
+    else:
+        return __replace_png_color_resize(os.path.join(root_path, f'{name.lower()}.png'), color, (icon_size, icon_size))
+
+
 def __get_default_config():
     """
     获取必须参数的默认配置
@@ -389,13 +435,14 @@ def __get_content_size(font:ImageFont.FreeTypeFont, content:str, new_line_flag:b
         bbox = font.getbbox(content)
         return [bbox[2], bbox[3]-bbox[1], -bbox[1]]
 
-def __get_cell_content_width_height(content_size:list, newline_margin_rate:float, cell_padding_h:int, cell_padding_v:int) -> list:
+def __get_cell_content_width_height(content_size:list, newline_margin_rate:float, cell_padding_h:int, cell_padding_v:int, icon_config:str=None) -> list:
     """
     计算单元格文本内容大小的宽度和高度，考虑内容在单元格内的水平、垂直间距；以及内容有换行的情况
     :param content_size: 内容的大小列表，单个元素格式为[width, height, y_adjust]
     :param newline_margin_rate: 换行内容的间距比例（相对于内容高度）
     :param cell_padding_h: 单元格的水平间距
     :param cell_padding_v: 单元格的垂直间距
+    :param icon_config: 单元格的图标属性
     :return [width, height]: 该内容的最大的宽度和累计的高度
     """
     # 宽度取换行内容的最大宽度（考虑水平间距），高度为累计的高度（考虑垂直间距）
@@ -404,6 +451,9 @@ def __get_cell_content_width_height(content_size:list, newline_margin_rate:float
     __newline_margin = math.ceil(content_size[0][1] * newline_margin_rate) if content_size else 0
     if len(content_size) > 1:
         height += (len(content_size) - 1) * __newline_margin
+    # TODO: 未来待优化：图标宽度的占位暂时以（行高-20）定义
+    if icon_config:
+        width += height - 20
     return [width, height]
 
 def __get_content_coord(rec_coord:list, content_size:list, align_h:str='center', align_v:str='center', x_adjust:int=0, y_adjust:int=0):
@@ -434,33 +484,43 @@ def __get_content_coord(rec_coord:list, content_size:list, align_h:str='center',
     return [h_align_map[align_h](content_size[0], 5), v_align_map[align_v](content_size[1], 5) + content_size[2]]
 
 
-def __get_multiline_content_coord(rec_coord:list, content_size:list, newline_margin_rate:float, align_h:str, align_v:str):
+def __get_multiline_content_icon_coord(rec_coord:list, content_size:list, newline_margin_rate:float, align_h:str, align_v:str, icon_size:int):
     """
-    计算含换行符的文本内容在给定矩形框内不同对齐方式下的坐标，支持直接对x、y轴坐标进行调整。
+    计算含换行符的文本内容，以及含图标的情形，在给定矩形框内不同对齐方式下的坐标。
     :param rec_size: 矩形框的大小，格式为[左上角x, 左上角y, 右下角x, 右下角y]
     :param content_size: 内容的大小，格式为[宽度, 高度, y轴调整量]
     :param align_h: 水平对齐方式，取值为['left', 'center', 'right']，默认为'center'
     :param align_v: 垂直对齐方式，取值为['top', 'center', 'bottom']，默认为'center'
-    :param x_adjust: 额外的水平偏移量，默认为0
-    :param y_adjust: 额外的垂直偏移量，默认为0
-    :return: 内容在单元格内的坐标[x, y]
+    :param icon_size: 图标的大小
+    :return: dict, 文本内容，图标在单元格内的坐标[x, y]
     """
+    # TODO: 未来待优化，目前图标与文本内容间隔设定为5个像素
+    icon_adjust = icon_size + 5 if icon_size > 0 else 0
     # 如果只有一行，则直接调用 __get_content_coord
     if len(content_size) == 1:
-        return __get_content_coord(rec_coord, content_size[0], align_h, align_v)
+        content_icon_size = [content_size[0][0] + icon_adjust, content_size[0][1], content_size[0][2]]
+        x, y = __get_content_coord(rec_coord, content_icon_size, align_h, align_v)
+        return {
+            'content': [x, y],
+            'icon': [x + content_size[0][0]+5, math.ceil((rec_coord[3]+rec_coord[1])/2-icon_size/2)]
+        }
     else:
         content_coord_list = []
         __max_width = max([__size[0] for __size in content_size])
         __newline_margin = math.ceil(content_size[0][1] * newline_margin_rate)
         __max_height = sum([__size[1] for __size in content_size]) + __newline_margin * (len(content_size) - 1)
-        __global_coord = __get_content_coord(rec_coord, [__max_width, __max_height, 0], align_h, align_v)
+        __global_coord = __get_content_coord(rec_coord, [__max_width + icon_adjust, __max_height, 0], align_h, align_v)
         for __size in content_size:
             content_coord_list.append([
                 __global_coord[0] + math.ceil((__max_width - __size[0]) / 2),
                 __global_coord[1] + __size[2]
             ])
             __global_coord[1] += __size[1] + __newline_margin
-        return content_coord_list
+        return {
+            'content': content_coord_list,
+            # 图标的纵坐标直接按照矩形框计算
+            'icon': [__global_coord[0] + __max_width + 5, math.ceil((rec_coord[3]+rec_coord[1])/2-icon_size/2)]
+        }
 
 def __process_title_attribute(font_path:str, title_list:list, default_config:dict):
     """
@@ -578,6 +638,35 @@ def __draw_title_footnote(draw:ImageDraw, content_coord_list:list, title_footnot
         draw.text(content_coord_list[idx], title['content'], fill=attribute_dict[idx]['color'],
             font=ImageFont.truetype(attribute_dict[idx]['font_path'], attribute_dict[idx]['font_size']))
 
+def __get_same_idx(i:int, j:int, row_num:int, col_num:int, type:str) -> list:
+    """
+    获取行、列、单元格相同表示方法的索引（正向、逆向）
+    :param i: 行索引
+    :param j: 列索引
+    :param row_num: 行数
+    :param col_num: 列数
+    :param type: 表示方法，取值为['row', 'col', 'cell']
+    :return: list, 相同索引的表示方法列表
+    """
+    if type == 'row':
+        return [f'r{i}', f'r{i-row_num}']
+    elif type == 'col':
+        return [f'c{j}', f'c{j-col_num}']
+    else:
+        __row_idx = [i, i - row_num]
+        __col_idx = [j, j - col_num]
+        return [f'{i},{j}' for i in __row_idx for j in __col_idx]
+
+def __coalesce_list(lst):
+    """
+    获取列表中的第一个非空元素
+    :param lst: 列表
+    :return: 第一个非空元素
+    """
+    for item in lst:
+        if item is not None:
+            return item
+    return None
 
 def __process_table_attribute(font_path:str, row_num:int, col_num:int, cell_dict:dict, cell_merge_dict:dict, default_config:dict) -> dict:
     """
@@ -593,6 +682,8 @@ def __process_table_attribute(font_path:str, row_num:int, col_num:int, cell_dict
         - fore_color: 文字内容颜色
         - align_h: 文字内容的水平对齐方式
         - align_v: 文字内容的垂直对齐方式
+    按照【单元格】指定单元的图标属性
+        - icon_config: 单元格的图标属性
     :param row_num: 表格行数
     :param col_num: 表格列数
     :param cell_dict: 单元格内容格式字典
@@ -604,10 +695,11 @@ def __process_table_attribute(font_path:str, row_num:int, col_num:int, cell_dict
         'newline_margin_rate': cell_dict.get('newline_margin_rate', default_config['newline_margin_rate']),
         'padding_h': cell_dict.get('padding_h', default_config['cell_padding_h']),
         'padding_v': cell_dict.get('padding_v', default_config['cell_padding_v']),
+        'content_dim': 2 if isinstance(cell_dict['content'][0], list) else 1,
+        'cell_merge_dict': {},
     }
-    # 以下获取可以单独设置的属性
-    lam_dict_attribute = lambda x, i, j: x.get(i) or x.get(j) if isinstance(x, dict) else None
-    lam_final_attribute = lambda cell, col, row, table, obj_type, default: cell or col or row or (table if isinstance(table, obj_type) else default)
+    lam_dict_multi_key_attr = lambda dct, k_lst: __coalesce_list([dct.get(k) for k in k_lst]) if isinstance(dct, dict) else None
+    lam_attr_type = lambda v, v_type: v if isinstance(v, v_type) else None
     __cell_idx = 0
     __skip_coord_list = []
     # 属性列表，构成：属性名、类型、默认值、从参数获取到的属性值
@@ -618,26 +710,32 @@ def __process_table_attribute(font_path:str, row_num:int, col_num:int, cell_dict
         ['fore_color', str, default_config['fore_color'], cell_dict.get('fore_color')],
         ['align_h', str, default_config['cell_align'], cell_dict.get('align_h')],
         ['align_v', str, default_config['cell_align'], cell_dict.get('align_v')],
+        ['icon_config', str, None, cell_dict.get('icon_config')]
     ]
     for i in range(row_num):
         # 从参数值按行获取属性
-        __row_attribute_list = [lam_dict_attribute(attribute[3], f'r{i}', '__NONE__') for attribute in __attribute_list]
+        __row_attr_list = [lam_dict_multi_key_attr(attribute[3], __get_same_idx(i, 0, row_num, col_num, 'row')) for attribute in __attribute_list]
         for j in range(col_num):
-            __curr_coord = f'{i}-{j}'
+            __cell_coord = f'{i}-{j}'
             # 如果当前单元格是被合并的，则跳过
-            if __curr_coord in __skip_coord_list:
+            if __cell_coord in __skip_coord_list:
                 continue
             # 从参数值按列获取属性
-            __col_attribute_list = [lam_dict_attribute(attribute[3], f'c{j}', '__NONE__') for attribute in __attribute_list]
+            __col_attribute_list = [lam_dict_multi_key_attr(attribute[3], __get_same_idx(i, j, row_num, col_num, 'col')) for attribute in __attribute_list]
+            # 单元格的索引列表，不同表示方法的索引集合
+            __cell_idx_list = [__cell_idx, __cell_coord] + __get_same_idx(i, j, row_num, col_num, 'cell')
             # 从参数值按索引顺序获取字体属性(可以按照content的顺序索引，也可以按照单元格的坐标索引)
-            __cell_attribute_list = [lam_dict_attribute(attribute[3], __cell_idx, __curr_coord) for attribute in __attribute_list]
+            __cell_attribute_list = [lam_dict_multi_key_attr(attribute[3], __cell_idx_list) for attribute in __attribute_list]
             # 计算单元格最终的属性，按照：单元格、列、行、表格、默认的顺序依次获取
-            table_attribute_dict[__curr_coord] = dict([[__attr_name, lam_final_attribute(__cell_v, __col_v, __row_v, __attr_obj, __attr_type, __attr_default)]
-                for (__attr_name, __attr_type, __attr_default, __attr_obj), __cell_v, __col_v, __row_v in zip(__attribute_list, __cell_attribute_list, __col_attribute_list, __row_attribute_list)
+            table_attribute_dict[__cell_coord] = dict([[__attr_name, __coalesce_list([__cell_v, __col_v, __row_v, lam_attr_type(__attr_obj, __attr_type), __attr_default])]
+                for (__attr_name, __attr_type, __attr_default, __attr_obj), __cell_v, __col_v, __row_v in
+                    zip(__attribute_list, __cell_attribute_list, __col_attribute_list, __row_attr_list)
             ])
+            # 额外处理图标属性：有图标属性的单元格全部默认右对齐
+            table_attribute_dict[__cell_coord]['align_h'] = 'right' if table_attribute_dict[__cell_coord]['icon_config'] else table_attribute_dict[__cell_coord]['align_h']
 
             # 处理合并单元格
-            __row_combine, __col_combine = cell_merge_dict.get(__curr_coord, [0,0])
+            __row_combine, __col_combine = lam_dict_multi_key_attr(cell_merge_dict, __cell_idx_list) or [0, 0]
             # 向下合并行，下方单元格跳过
             __skip_coord_list.extend(f'{i+t}-{j}' for t in range(1, __row_combine+1))
             # 向右合并列，右侧单元格跳过
@@ -646,44 +744,49 @@ def __process_table_attribute(font_path:str, row_num:int, col_num:int, cell_dict
             __skip_coord_list.extend(f'{i+t_i}-{j+t_j}' for t_i in range(1, __row_combine+1) for t_j in range(1, __col_combine+1))
             # 单元格内容自增
             __cell_idx += 1
+            # 将合并单元格的信息保存到属性字典中
+            table_attribute_dict['cell_merge_dict'][__cell_coord] = [__row_combine, __col_combine]
+    # 将跳过的单元格坐标保存到属性字典中
+    table_attribute_dict['skip_coord_list'] = __skip_coord_list
     return table_attribute_dict
 
 
 
-def __get_table_size(row_num:int, col_num:int, cell_dict:dict, cell_merge_dict:dict, col_width_dict:dict, row_height_dict:dict, table_attribute_dict:dict, default_config:dict) -> list:
+def __get_table_size(row_num:int, col_num:int, cell_dict:dict, col_width_dict:dict, row_height_dict:dict, table_attribute_dict:dict) -> list:
     """
     计算表格的大小
     :param row_num: 表格行数
     :param col_num: 表格列数
     :param cell_dict: 单元格内容格式字典
-    :param cell_merge_dict: 单元格合并字典
-    :param default_config: 默认配置字典
     :param col_width_dict: 用户自定义列宽字典
     :param row_height_dict: 用户自定义行高字典
     :param table_attribute_dict: 单元格属性字典
-    :param default_config: 默认配置
-    :return: final_content_size_dict, final_row_height_dict, final_col_width_dict, 前者为每个单元格的大小，后者为每一行的高度、每一列的宽度
+    :return: final_content_size_dict, final_row_height_dict, final_col_width_dict,
+        前者为每个单元格的大小，后者为每一行的高度、每一列的宽度
     """
-    __skip_coord_list = []
     __cell_idx = 0
+    lam_get_centent = lambda idx, i, j, dim: cell_dict['content'][idx] if dim==1 else cell_dict['content'][i][j]
     final_content_size_dict, final_row_height_dict, final_col_width_dict = {}, dict([i, 0] for i in range(row_num)), dict([i, 0] for i in range(col_num))
     for i in range(row_num):
         for j in range(col_num):
-            __curr_coord = f'{i}-{j}'
+            __cell_coord = f'{i}-{j}'
             # 如果当前单元格是被合并的，则跳过
-            if __curr_coord in __skip_coord_list:
+            if __cell_coord in table_attribute_dict['skip_coord_list']:
                 continue
 
             # 计算内容的大小
             __curr_size = __get_content_size(
-                ImageFont.truetype(table_attribute_dict[__curr_coord]['font_path'], table_attribute_dict[__curr_coord]['font_size']),
-                cell_dict['content'][__cell_idx]
+                ImageFont.truetype(table_attribute_dict[__cell_coord]['font_path'], table_attribute_dict[__cell_coord]['font_size']),
+                # cell_dict['content'][__cell_idx]
+                lam_get_centent(__cell_idx, i, j, table_attribute_dict['content_dim']),
             )
-            __curr_width_height = __get_cell_content_width_height(__curr_size, table_attribute_dict['newline_margin_rate'], table_attribute_dict['padding_h'], table_attribute_dict['padding_v'])
-            final_content_size_dict[__curr_coord] = __curr_size
+            __curr_width_height = __get_cell_content_width_height(__curr_size,
+                table_attribute_dict['newline_margin_rate'], table_attribute_dict['padding_h'],
+                table_attribute_dict['padding_v'], table_attribute_dict[__cell_coord]['icon_config'])
+            final_content_size_dict[__cell_coord] = __curr_size
 
             # 处理合并单元格
-            __row_combine, __col_combine = cell_merge_dict.get(__curr_coord, [0,0])
+            __row_combine, __col_combine = table_attribute_dict['cell_merge_dict'][__cell_coord]
             # 计算每一行的最大高度、列的最大宽度，按照以下规则
             # 1. 没有合并的单元格参与行、列的最大高度、宽度计算
             # 2. 仅有按行合并的单元格，参与列最大宽度计算
@@ -697,24 +800,18 @@ def __get_table_size(row_num:int, col_num:int, cell_dict:dict, cell_merge_dict:d
             elif __row_combine == 0 and __col_combine > 0:
                 final_row_height_dict[i] = max(final_row_height_dict[i], __curr_width_height[1]) # 行的高度
 
-            # 向下合并行，下方单元格跳过
-            __skip_coord_list.extend(f'{i+t}-{j}' for t in range(1, __row_combine+1))
-            # 向右合并列，右侧单元格跳过
-            __skip_coord_list.extend(f'{i}-{j+t}' for t in range(1, __col_combine+1))
-            # 纵向、横向都有合并，跳过导致被合并的单元格
-            __skip_coord_list.extend(f'{i+t_i}-{j+t_j}' for t_i in range(1, __row_combine+1) for t_j in range(1, __col_combine+1))
             # 单元格内容自增
             __cell_idx += 1
 
     # 考虑合并单元格的内容对行、列的大小影响。
     # 例如：0,1列有合并，则判断合并后的内容宽度是否小于0,1列的总宽度；若0,1列总宽度不满足，则0,1列都增加宽度。
-    for __curr_coord, (__row_combine, __col_combine) in cell_merge_dict.items():
+    for __cell_coord, (__row_combine, __col_combine) in table_attribute_dict['cell_merge_dict'].items():
         # 合并单元格内容的宽度和高度
-        __w, __h = __get_cell_content_width_height(final_content_size_dict[__curr_coord],
+        __w, __h = __get_cell_content_width_height(final_content_size_dict[__cell_coord],
                                                    table_attribute_dict['newline_margin_rate'],
                                                    table_attribute_dict['padding_h'],
                                                    table_attribute_dict['padding_v'])
-        i, j = map(int, __curr_coord.split('-'))
+        i, j = map(int, __cell_coord.split('-'))
         # 合并行处理
         if __row_combine > 0:
             __combine_cell_height = sum(final_row_height_dict[i+t] for t in range(__row_combine +1 ))
@@ -743,11 +840,10 @@ def __get_table_size(row_num:int, col_num:int, cell_dict:dict, cell_merge_dict:d
             final_col_width_dict[__col] = __width
         else:
             print(f'警告：用户自定义的列宽【{__col} = {__width}】不满足内容的大小，忽略设置。')
-
     return final_content_size_dict, final_row_height_dict, final_col_width_dict
 
-def __get_table_cell_coord(start_x_pos:int, start_y_pos:int, row_num:int, col_num:int, content_size_dict:dict, row_height_dict:dict, col_width_dict:dict, cell_merge_dict:dict, table_attribute_dict:dict,  line_width:int):
-    content_coord_list = []
+def __get_table_cell_coord(start_x_pos:int, start_y_pos:int, row_num:int, col_num:int, content_size_dict:dict, row_height_dict:dict, col_width_dict:dict, table_attribute_dict:dict,  line_width:int):
+    content_icon_coord_list = []
     cell_retangle_list = []
 
     __y_pos = start_y_pos
@@ -755,47 +851,55 @@ def __get_table_cell_coord(start_x_pos:int, start_y_pos:int, row_num:int, col_nu
         __x_pos = start_x_pos
         __y_pos += row_height_dict[i-1] + line_width if i > 0 else 0
         for j in range(col_num):
-            __idx = f'{i}-{j}'
+            __cell_coord = f'{i}-{j}'
             # 单元格x轴坐标更新
             __x_pos += col_width_dict[j-1] + line_width if j > 0 else 0
             # 被合并的单元格跳过
-            if content_size_dict.get(__idx) is None:
+            if content_size_dict.get(__cell_coord) is None:
                 continue
             # 单元格矩形框的坐标
             __cell_rectange = [__x_pos, __y_pos, __x_pos + col_width_dict[j], __y_pos + row_height_dict[i]]
             # 获取合并单元格信息，若有合并单元格，调整宽度和高度
-            __combine_row, __combine_col = cell_merge_dict.get(__idx, (0, 0))
+            __combine_row, __combine_col = table_attribute_dict['cell_merge_dict'][__cell_coord]
             for idx in range(1, __combine_row+1):
                 __cell_rectange[3] += row_height_dict[i+idx] + line_width
             for idx in range(1, __combine_col+1):
                 __cell_rectange[2] += col_width_dict[j+idx] + line_width
             # 获取内容的坐标
-            __content_coord = __get_multiline_content_coord(__cell_rectange, content_size_dict[__idx], table_attribute_dict['newline_margin_rate'], table_attribute_dict[__idx]['align_h'], table_attribute_dict[__idx]['align_v'])
-            content_coord_list.append(__content_coord)
+            __content_icon_coord = __get_multiline_content_icon_coord(__cell_rectange, content_size_dict[__cell_coord],
+                    table_attribute_dict['newline_margin_rate'], table_attribute_dict[__cell_coord]['align_h'],
+                    table_attribute_dict[__cell_coord]['align_v'], table_attribute_dict['icon_size'] if table_attribute_dict[__cell_coord]['icon_config'] else 0)
+            content_icon_coord_list.append(__content_icon_coord)
             cell_retangle_list.append(__cell_rectange)
-    return cell_retangle_list, content_coord_list
+    return cell_retangle_list, content_icon_coord_list
 
-def __draw_table(draw:ImageDraw.Draw, row_num:int, col_num:int, cell_dict:dict, rectangle_coord_list, content_coord_list, cell_attribute_dict:dict):
-    __idx = 0
+def __draw_table(draw:ImageDraw.Draw, image:Image, row_num:int, col_num:int, cell_dict:dict, rectangle_coord_list:list, content_icon_coord_list:list, table_attribute_dict:dict):
+    __cell_idx = 0
+    lam_get_centent = lambda idx, i, j, dim: cell_dict['content'][idx] if dim==1 else cell_dict['content'][i][j]
     for i in range(row_num):
         for j in range(col_num):
-            __curr_coord = f'{i}-{j}'
-            if cell_attribute_dict.get(__curr_coord) is None:
+            __cell_coord = f'{i}-{j}'
+            if table_attribute_dict.get(__cell_coord) is None:
                 continue
-            __cell_rectange = rectangle_coord_list[__idx]
-            __content_coord = content_coord_list[__idx]
-            draw.rectangle(__cell_rectange, fill=cell_attribute_dict[__curr_coord]['back_color'])
-            if len(cell_dict['content'][__idx].split('\n')) == 1:
-                draw.text(__content_coord, cell_dict['content'][__idx],
-                        font=ImageFont.truetype(cell_attribute_dict[__curr_coord]['font_path'], cell_attribute_dict[__curr_coord]['font_size']),
-                        fill=cell_attribute_dict[__curr_coord]['fore_color'])
+            __cell_rectange = rectangle_coord_list[__cell_idx]
+            __content_coord = content_icon_coord_list[__cell_idx]['content']
+            draw.rectangle(__cell_rectange, fill=table_attribute_dict[__cell_coord]['back_color'])
+            __cell_content = lam_get_centent(__cell_idx, i, j, table_attribute_dict['content_dim'])
+            if len(__cell_content.split('\n')) == 1:
+                draw.text(__content_coord, __cell_content,
+                        font=ImageFont.truetype(table_attribute_dict[__cell_coord]['font_path'], table_attribute_dict[__cell_coord]['font_size']),
+                        fill=table_attribute_dict[__cell_coord]['fore_color'])
             else:
-                # 需要考虑换行符的处理
-                for __content, __coord in zip(cell_dict['content'][__idx].split('\n'), __content_coord):
+                # 有换行符的内容分两行输出
+                for __content, __coord in zip(__cell_content.split('\n'), __content_coord):
                     draw.text(__coord, __content,
-                        font=ImageFont.truetype(cell_attribute_dict[__curr_coord]['font_path'], cell_attribute_dict[__curr_coord]['font_size']),
-                        fill=cell_attribute_dict[__curr_coord]['fore_color'])
-            __idx += 1
+                        font=ImageFont.truetype(table_attribute_dict[__cell_coord]['font_path'], table_attribute_dict[__cell_coord]['font_size']),
+                        fill=table_attribute_dict[__cell_coord]['fore_color'])
+            # 图标处理
+            if table_attribute_dict[__cell_coord]['icon_config']:
+                icon_img = __get_icon_image(table_attribute_dict[__cell_coord]['icon_config'], table_attribute_dict['icon_size'])
+                image.paste(icon_img, content_icon_coord_list[__cell_idx]['icon'], icon_img)
+            __cell_idx += 1
 
 
 
@@ -836,12 +940,13 @@ def complex_table_pic(row_num:int, col_num:int, title_list:list, cell_dict:dict,
     __footnote_attribute_dict = __process_footnote_attribute(font_path, footnote_list, __default_config)
     # 计算脚注的大小
     __footnote_content_size, __footnote_rectangle_size = __get_title_footnote_size(footnote_list, __footnote_attribute_dict)
-    # 计算标题和脚注的宽度和高度
-    # __title_footnote_size_dict = __get_title_footnote_size(font_path, title_list, footnote_list, __default_config)
     # 处理表格/单元格的属性
     __table_attribute_dict = __process_table_attribute(font_path, row_num, col_num, cell_dict, cell_merge_dict, __default_config)
     # 计算表格单元格以及行、列的宽度和高度
-    __cell_content_size_dict, __row_height_dict, __col_width_dict = __get_table_size(row_num, col_num, cell_dict, cell_merge_dict, col_width_dict, row_height_dict, __table_attribute_dict, __default_config)
+    __cell_content_size_dict, __row_height_dict, __col_width_dict = __get_table_size(row_num, col_num, cell_dict, col_width_dict, row_height_dict, __table_attribute_dict)
+    # 图标的大小：最小的行高度
+    __table_attribute_dict['icon_size'] = min(__row_height_dict.values()) -20
+
     # 开始计算图片的总大小
     # 1. 宽度=max(标题宽度, 表格宽度, 脚注宽度)；其中表格宽度需要额外加上：表格线的宽度，表格左侧左右的padding宽度
     # 2. 高度=sum(标题高度, 表格高度, 脚注高度)
@@ -857,7 +962,7 @@ def complex_table_pic(row_num:int, col_num:int, title_list:list, cell_dict:dict,
     __pic_height = sum([rec[1] for rec in __title_rectangle_size] + [rec[1] for rec in __footnote_rectangle_size] + [__table_size[1] + __table_padding_t + __table_padding_b])
 
     # 创建图片对象
-    image = Image.new('RGB', (__pic_width, __pic_height), pic_bk_color)
+    image = Image.new('RGBA', (__pic_width, __pic_height), pic_bk_color)
     draw = ImageDraw.Draw(image)
     # 计算每个标题输出的坐标
     __title_coord_list, __y_pos = __get_title_footnote_coord(__pic_width, 0, __title_content_size, __title_rectangle_size, __title_attribute_dict)
@@ -878,9 +983,10 @@ def complex_table_pic(row_num:int, col_num:int, title_list:list, cell_dict:dict,
     __x_pos = __table_x_pos + table_line_width
     __y_pos += table_line_width
     # 计算每个单元格矩形框的坐标，以及文本内容的坐标
-    __cell_rectangle_coord_list, __cell_content_coord_list = __get_table_cell_coord(__x_pos, __y_pos, row_num, col_num, __cell_content_size_dict, __row_height_dict, __col_width_dict , cell_merge_dict, __table_attribute_dict, table_line_width)
+    __cell_rectangle_coord_list, __cell_content_icon_coord_list = __get_table_cell_coord(__x_pos, __y_pos, row_num, col_num, __cell_content_size_dict, __row_height_dict, __col_width_dict , __table_attribute_dict, table_line_width)
     # 绘制单元格以及文本内容
-    __draw_table(draw, row_num, col_num, cell_dict, __cell_rectangle_coord_list, __cell_content_coord_list, __table_attribute_dict)
+    __draw_table(draw, image, row_num, col_num, cell_dict, __cell_rectangle_coord_list, __cell_content_icon_coord_list, __table_attribute_dict)
+
     # 开始绘制脚注
     __y_pos += __table_size[1] + __table_padding_b
     __footnote_coord_list, __y_pos = __get_title_footnote_coord(__pic_width, __y_pos, __footnote_content_size, __footnote_rectangle_size, __footnote_attribute_dict)
